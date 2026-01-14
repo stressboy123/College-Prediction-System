@@ -19,7 +19,7 @@
         <mysql-connector.version>8.0.33</mysql-connector.version>
         <lombok.version>1.18.30</lombok.version>
         <easyexcel.version>3.3.2</easyexcel.version>
-        <poi.version>5.2.5</poi.version>
+        <poi.version>4.1.2</poi.version>
         <java.version>1.8</java.version>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
@@ -29,7 +29,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.7.15</version> <!-- 关键修改：替换为具体版本号 -->
+        <version>2.7.15</version>
         <relativePath/>
     </parent>
 
@@ -65,11 +65,7 @@
             <exclusions>
                 <exclusion>
                     <groupId>org.apache.poi</groupId>
-                    <artifactId>poi</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.apache.poi</groupId>
-                    <artifactId>poi-ooxml</artifactId>
+                    <artifactId>*</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -81,6 +77,16 @@
         <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi-ooxml</artifactId>
+            <version>${poi.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml-schemas</artifactId>
+            <version>${poi.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-scratchpad</artifactId>
             <version>${poi.version}</version>
         </dependency>
         <dependency>
@@ -110,7 +116,7 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>${spring-boot.version}</version> <!-- 这里仍可使用变量，因为插件解析在properties之后 -->
+                <version>${spring-boot.version}</version>
                 <configuration>
                     <excludes>
                         <exclude>
