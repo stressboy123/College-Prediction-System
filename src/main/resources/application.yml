@@ -1,0 +1,32 @@
+spring:
+  application:
+    name: College-Prediction-System
+  datasource:
+    url: jdbc:mysql://134.175.123.61:3306/db_college?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&allowMultiQueries=true
+    username: root
+    password: ljl20021018
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+server:
+  port: 11451
+  servlet:
+    context-path: /
+
+mybatis-plus:
+  mapper-locations: classpath:mapper/*.xml # 资源目录下的mapper文件
+  type-aliases-package: com.gdut.entity # 实体类包路径
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl # 打印SQL日志
+
+jwt:
+  secret: kojitabosh-114514-sensei # 密钥（生产环境需加密存储）
+  expire: 86400000 # token过期时间（1天，单位：毫秒）
+  header: Authorization # 请求头中token的key
+  prefix: Bearer # token前缀（空格分隔）
+
+logging:
+  level:
+    com.gdut.mapper: debug
