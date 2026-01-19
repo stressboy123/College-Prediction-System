@@ -11,6 +11,7 @@ import com.gdut.mapper.SysUserMapper;
 import com.gdut.mapper.SysUserRoleMapper;
 import com.gdut.service.SysUserService;
 import com.gdut.utils.JwtUtil;
+import com.gdut.utils.SpringContextHolder;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -35,12 +36,6 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     @Resource
     private SysUserRoleMapper sysUserRoleMapper;
     @Resource
-    private AuthenticationManager authenticationManager;
-    @Resource
-    private UserDetailsService userDetailsService;
-    @Resource
-    private PasswordEncoder passwordEncoder;
-    @Resource
     private JwtUtil jwtUtil;
 
     // 默认注册角色（普通用户）
@@ -48,6 +43,10 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
     @Override
     public Result<String> login(LoginDTO loginDTO) {
+        // 通过SpringContextHolder获取所需的组件
+        AuthenticationManager authenticationManager = SpringContextHolder.getBean(AuthenticationManager.class);
+        UserDetailsService userDetailsService = SpringContextHolder.getBean(UserDetailsService.class);
+
         // 1. 验证用户名密码（Spring Security认证）
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginDTO.getUsername(), loginDTO.getPassword())
@@ -62,6 +61,8 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Result<?> register(RegisterDTO registerDTO) {
+        // 通过SpringContextHolder获取PasswordEncoder
+        PasswordEncoder passwordEncoder = SpringContextHolder.getBean(PasswordEncoder.class);
         // 1. 校验用户名是否已存在
         if (sysUserMapper.selectByUsername(registerDTO.getUsername()) != null) {
             return Result.fail(ResultCode.USERNAME_EXISTS);

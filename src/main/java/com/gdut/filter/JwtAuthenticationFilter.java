@@ -1,5 +1,6 @@
 package com.gdut.filter;
 
+import com.gdut.utils.SpringContextHolder;
 import com.gdut.entity.SysUser;
 import com.gdut.service.SysUserService;
 import com.gdut.utils.JwtUtil;
@@ -10,6 +11,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+
 import javax.annotation.Resource;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -27,11 +29,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Resource
     private JwtUtil jwtUtil;
-    @Resource
-    private SysUserService sysUserService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        SysUserService sysUserService = SpringContextHolder.getBean(SysUserService.class);
         // 1. 获取请求头中的Token
         String header = request.getHeader(jwtUtil.getHeader());
         if (header == null || !header.startsWith(jwtUtil.getTokenPrefix())) {

@@ -5,6 +5,7 @@ import com.gdut.filter.JwtAuthenticationFilter;
 import com.gdut.handler.JwtAccessDeniedHandler;
 import com.gdut.handler.JwtAuthenticationEntryPoint;
 import com.gdut.service.SysUserService;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -34,7 +35,7 @@ import javax.annotation.Resource;
 public class SecurityConfig {
 
     @Resource
-    private JwtAuthenticationFilter jwtAuthenticationFilter;
+    private ObjectProvider<JwtAuthenticationFilter> jwtAuthenticationFilterProvider;
     @Resource
     private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     @Resource
@@ -103,7 +104,7 @@ public class SecurityConfig {
                 .accessDeniedHandler(jwtAccessDeniedHandler) // 权限不足
                 .and()
                 // 5. 添加JWT过滤器（在用户名密码认证过滤器之前）
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(jwtAuthenticationFilterProvider.getObject(), UsernamePasswordAuthenticationFilter.class)
                 // 6. 启用认证提供者
                 .authenticationProvider(authenticationProvider());
 
