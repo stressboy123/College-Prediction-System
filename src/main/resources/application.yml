@@ -22,7 +22,7 @@ mybatis-plus:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl # 打印SQL日志
 
 jwt:
-  secret: kojitabosh-114514-sensei # 密钥（生产环境需加密存储）
+  secret: my-secret-is-kojitabosh-114514-sensei # 密钥（生产环境需加密存储）
   expire: 86400000 # token过期时间（1天，单位：毫秒）
   header: Authorization # 请求头中token的key
   prefix: Bearer # token前缀（空格分隔）
