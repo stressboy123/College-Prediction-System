@@ -9,7 +9,7 @@ import lombok.Data;
  * 通用基础实体类：适配 12 省差异化字段，仅保留核心字段
  */
 @Data
-public class BaseExcelEntity {
+public class ExcelAdmissionDataEntity {
     /**
      * 广东省：院校代码	院校名称	专业组代码	投档最低分	投档最低排位
      * 广西壮族自治区：院校代码	院校名称	专业组	投档最低分

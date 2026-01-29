@@ -3,7 +3,7 @@ package com.gdut.listener;
 import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.event.AnalysisEventListener;
 import com.alibaba.excel.metadata.data.ReadCellData;
-import com.gdut.entity.BaseExcelEntity;
+import com.gdut.entity.ExcelAdmissionDataEntity;
 import com.gdut.entity.ExcelRawData;
 import com.gdut.target.ExcelMultiProperty;
 
@@ -18,8 +18,8 @@ import java.util.Map;
  * @date 2026/1/25
  * 实现多列名->统一实体字段的映射
  */
-public class MultiAliasExcelListener extends AnalysisEventListener<ExcelRawData> {
-    private final List<BaseExcelEntity> dataList = new ArrayList<>();
+public class ExcelAdmissionDataListener extends AnalysisEventListener<ExcelRawData> {
+    private final List<ExcelAdmissionDataEntity> dataList = new ArrayList<>();
     private Map<String, Integer> headNameIndexMap; // 列名 → 列索引
     private Map<Field, List<String>> fieldAliasMap; // 实体字段 → 注解别名列表
 
@@ -27,7 +27,7 @@ public class MultiAliasExcelListener extends AnalysisEventListener<ExcelRawData>
      * 构造器：初始化时解析所有字段的注解别名
      * @param clazz 实体类字节码
      */
-    public MultiAliasExcelListener(Class<BaseExcelEntity> clazz) {
+    public ExcelAdmissionDataListener(Class<ExcelAdmissionDataEntity> clazz) {
         this.fieldAliasMap = parseFieldAlias(clazz);
     }
 
@@ -58,7 +58,7 @@ public class MultiAliasExcelListener extends AnalysisEventListener<ExcelRawData>
         }
 
         // 2. 初始化默认值
-        BaseExcelEntity targetEntity = new BaseExcelEntity();
+        ExcelAdmissionDataEntity targetEntity = new ExcelAdmissionDataEntity();
         targetEntity.setSheetNo(context.readSheetHolder().getSheetNo()); // 赋值sheetNo
         targetEntity.setValid(true);
         targetEntity.setErrorMsg("");
@@ -136,7 +136,7 @@ public class MultiAliasExcelListener extends AnalysisEventListener<ExcelRawData>
      * @param clazz 注解类字节码
      * @return 字段-别名列表映射
      */
-    private Map<Field, List<String>> parseFieldAlias(Class<BaseExcelEntity> clazz) {
+    private Map<Field, List<String>> parseFieldAlias(Class<ExcelAdmissionDataEntity> clazz) {
         Map<Field, List<String>> map = new HashMap<>();
         Field[] fields = clazz.getDeclaredFields();
         for (Field field : fields) {
@@ -163,7 +163,7 @@ public class MultiAliasExcelListener extends AnalysisEventListener<ExcelRawData>
      * 获取读取到的所有数据
      * @return 最终数据
      */
-    public List<BaseExcelEntity> getDataList() {
+    public List<ExcelAdmissionDataEntity> getDataList() {
         return dataList;
     }
 }

@@ -1,6 +1,6 @@
 package com.gdut.utils;
 
-import com.gdut.entity.BaseExcelEntity;
+import com.gdut.entity.ExcelAdmissionDataEntity;
 
 /**
  * @author liujunliang
@@ -14,7 +14,7 @@ public class FieldSplitUtil {
      * @param entity 待拆分的实体
      * @param province 省份名称（如"江苏"、"湖北"）
      */
-    public static void splitFusedField(BaseExcelEntity entity, String province) {
+    public static void splitFusedField(ExcelAdmissionDataEntity entity, String province) {
         if (entity == null || province == null) {
             return;
         }
@@ -30,7 +30,7 @@ public class FieldSplitUtil {
     /**
      * 拆分湖北字段：从"院校专业组代号/名称"提取核心信息
      */
-    private static void splitHubeiField(BaseExcelEntity entity) {
+    private static void splitHubeiField(ExcelAdmissionDataEntity entity) {
         // 1. 拆分院校代码（从collegeCode："院校专业组代号"提取）
         String codeFused = entity.getCollegeCode();
         if (codeFused != null && codeFused.contains("-")) {
@@ -64,7 +64,7 @@ public class FieldSplitUtil {
     /**
      * 拆分江苏字段：从"院校、专业组（再选科目要求）"提取核心信息
      */
-    private static void splitJiangsuField(BaseExcelEntity entity) {
+    private static void splitJiangsuField(ExcelAdmissionDataEntity entity) {
         // 融合字段已赋值到collegeName/majorGroup，取其中一个即可
         String fusedField = entity.getMajorGroup();
         if (fusedField == null || fusedField.isEmpty()) {

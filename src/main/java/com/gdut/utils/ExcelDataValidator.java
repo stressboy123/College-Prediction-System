@@ -1,6 +1,6 @@
 package com.gdut.utils;
 
-import com.gdut.entity.BaseExcelEntity;
+import com.gdut.entity.ExcelAdmissionDataEntity;
 import com.gdut.target.ExcelMultiProperty;
 
 import java.lang.reflect.Field;
@@ -20,7 +20,7 @@ public class ExcelDataValidator {
     /**
      * 校验单条数据：必填字段非空+格式，可选字段有值才校验
      */
-    public static <T extends BaseExcelEntity> void validate(T entity) {
+    public static <T extends ExcelAdmissionDataEntity> void validate(T entity) {
         StringBuilder errorMsg = new StringBuilder();
         Class<?> clazz = entity.getClass();
 
