@@ -31,7 +31,7 @@ public class AuthController {
 
     // 注册接口（无需认证）
     @PostMapping("/register")
-    public Result<?> register(@Valid @RequestBody RegisterDTO registerDTO) {
+    public Result<String> register(@Valid @RequestBody RegisterDTO registerDTO) {
         return sysUserService.register(registerDTO);
     }
 }

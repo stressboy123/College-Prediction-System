@@ -95,6 +95,8 @@ public class SecurityConfig {
                 .antMatchers("/auth/login", "/auth/register").permitAll()
                 // 放行Swagger（如果后续集成）
                 .antMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                // 放行excel静态资源（如果后续集成）
+                .antMatchers("/excel/**").permitAll()
                 // 其他接口需认证
                 .anyRequest().authenticated()
                 .and()

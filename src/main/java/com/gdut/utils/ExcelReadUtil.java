@@ -7,6 +7,8 @@ import com.alibaba.excel.support.ExcelTypeEnum;
 import com.gdut.entity.ExcelAdmissionDataEntity;
 import com.gdut.entity.ExcelCollegeDetailEntity;
 import com.gdut.entity.ExcelCollegeEntity;
+import com.gdut.entity.ExcelEnrollmentPlanEntity;
+import com.gdut.entity.ExcelMajorEntity;
 import com.gdut.entity.ExcelRawData;
 import com.gdut.listener.ExcelAdmissionDataListener;
 
@@ -22,19 +24,18 @@ import java.util.List;
 public class ExcelReadUtil {
 
     /**
-     * 读取录取数据Excel所有Sheet的数据
-     * @param filePath Excel文件路径
+     * 读取录取数据Excel所有Sheet的数据（多别名）
+     * @param excelFile Excel文件
      * @param headRowNum 表头行数
      * @param type Excel文件类型
      * @return 所有Sheet的原始映射数据
      */
-    public static List<ExcelAdmissionDataEntity> readAllSheets(String filePath, int headRowNum, ExcelTypeEnum type) {
+    public static List<ExcelAdmissionDataEntity> readForExcelAdmissionDataAllSheets(File excelFile, int headRowNum, ExcelTypeEnum type) {
         List<ExcelAdmissionDataEntity> allSheetData = new ArrayList<>();
 
         try {
-            File excelFile = new File(filePath);
             if (!excelFile.exists()) {
-                throw new RuntimeException("Excel文件不存在：" + filePath);
+                throw new RuntimeException("Excel文件不存在：" + excelFile);
             }
 
             // 获取所有Sheet信息
@@ -65,16 +66,16 @@ public class ExcelReadUtil {
     }
 
     /**
-     * 读取录取数据单个Sheet的数据
-     * @param filePath Excel文件路径
+     * 读取录取数据单个Sheet的数据（多别名）
+     * @param excelFile Excel文件
      * @param sheetNo Sheet编号
      * @param headRowNum 表头行数
      * @param type Excel文件类型
      * @return 单个Sheet的映射数据
      */
-    public static List<ExcelAdmissionDataEntity> readSingleSheet(String filePath, int sheetNo, int headRowNum, ExcelTypeEnum type) {
+    public static List<ExcelAdmissionDataEntity> readForExcelAdmissionDataSingleSheet(File excelFile, int sheetNo, int headRowNum, ExcelTypeEnum type) {
         ExcelAdmissionDataListener listener = new ExcelAdmissionDataListener(ExcelAdmissionDataEntity.class);
-        EasyExcel.read(filePath)
+        EasyExcel.read(excelFile)
                 .headRowNumber(headRowNum)
                 .excelType(type)
                 .head(ExcelRawData.class)
@@ -87,14 +88,14 @@ public class ExcelReadUtil {
     /**
      * 读取 2025 全国普通高等学校名单
      *
-     * @param filePath 文件路径
+     * @param excelFile excel文件
      * @param sheetNo  sheet编号
      * @param headRowNum 头行数
      * @param type       文件类型
      * @return 院校库基础数据
      */
-    public static List<ExcelCollegeEntity> readForExcelCollege(String filePath, int sheetNo, int headRowNum, ExcelTypeEnum type) {
-        List<ExcelCollegeEntity> list = EasyExcel.read(filePath)
+    public static List<ExcelCollegeEntity> readForExcelCollege(File excelFile, int sheetNo, int headRowNum, ExcelTypeEnum type) {
+        List<ExcelCollegeEntity> list = EasyExcel.read(excelFile)
                 .headRowNumber(headRowNum)
                 .excelType(type)
                 .head(ExcelCollegeEntity.class)
@@ -105,19 +106,71 @@ public class ExcelReadUtil {
     /**
      * 读取院校库
      *
-     * @param filePath 文件路径
+     * @param excelFile excel文件
      * @param sheetNo  sheet编号
      * @param headRowNum 头行数
      * @param type       文件类型
      * @return 院校库详细数据
      */
-    public static List<ExcelCollegeDetailEntity> readForExcelCollegeDetail(String filePath, int sheetNo, int headRowNum, ExcelTypeEnum type) {
-        List<ExcelCollegeDetailEntity> list = EasyExcel.read(filePath)
+    public static List<ExcelCollegeDetailEntity> readForExcelCollegeDetail(File excelFile, int sheetNo, int headRowNum, ExcelTypeEnum type) {
+        List<ExcelCollegeDetailEntity> list = EasyExcel.read(excelFile)
                 .headRowNumber(headRowNum)
                 .excelType(type)
                 .head(ExcelCollegeDetailEntity.class)
                 .sheet(sheetNo)
                 .doReadSync();
+        return list;
+    }
+
+    /**
+     * 读取专业库
+     *
+     * @param excelFile excel文件
+     * @param sheetNo  sheet编号
+     * @param headRowNum 头行数
+     * @param type       文件类型
+     * @return 专业库数据
+     */
+    public static List<ExcelMajorEntity> readForExcelMajor(File excelFile, int sheetNo, int headRowNum, ExcelTypeEnum type) {
+        List<ExcelMajorEntity> list = EasyExcel.read(excelFile)
+                .headRowNumber(headRowNum)
+                .excelType(type)
+                .head(ExcelMajorEntity.class)
+                .sheet(sheetNo)
+                .doReadSync();
+        return list;
+    }
+
+
+    /**
+     * 读取excel文件默认顺序数据
+     * @param excelFile excel文件
+     * @param headRowNum 头行数
+     * @param type 文件类型
+     * @return 原始读取数据
+     */
+    public static List<ExcelRawData> readForExcelAllSheetOrigin(File excelFile, int headRowNum, ExcelTypeEnum type) {
+        List<ExcelRawData> list = EasyExcel.read(excelFile)
+                .headRowNumber(headRowNum)
+                .excelType(type)
+                .head(ExcelRawData.class)
+                .doReadAllSync();
+        return list;
+    }
+
+    /**
+     * 读取招生计划（多sheet）
+     * @param excelFile excel文件
+     * @param headRowNum 头行数
+     * @param type 文件类型
+     * @return 招生计划数据
+     */
+    public static List<ExcelEnrollmentPlanEntity> readForExcelEnrollmentPlan(File excelFile, int headRowNum, ExcelTypeEnum type) {
+        List<ExcelEnrollmentPlanEntity> list = EasyExcel.read(excelFile)
+                .headRowNumber(headRowNum)
+                .excelType(type)
+                .head(ExcelEnrollmentPlanEntity.class)
+                .doReadAllSync();
         return list;
     }
 }

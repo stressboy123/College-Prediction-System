@@ -60,7 +60,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Result<?> register(RegisterDTO registerDTO) {
+    public Result<String> register(RegisterDTO registerDTO) {
         // 通过SpringContextHolder获取PasswordEncoder
         PasswordEncoder passwordEncoder = SpringContextHolder.getBean(PasswordEncoder.class);
         // 1. 校验用户名是否已存在

@@ -14,7 +14,7 @@ public interface SysUserService extends IService<SysUser> {
     // 登录
     Result<String> login(LoginDTO loginDTO);
     // 注册
-    Result<?> register(RegisterDTO registerDTO);
+    Result<String> register(RegisterDTO registerDTO);
     // 根据用户名查询用户
     SysUser getUserByUsername(String username);
 }
