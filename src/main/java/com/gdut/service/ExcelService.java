@@ -10,6 +10,4 @@ public interface ExcelService {
     Result<String> addCollege();
 
     Result<String> addMajor();
-
-    Result<String> addMajorSubject();
 }

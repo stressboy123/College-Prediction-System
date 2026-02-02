@@ -27,9 +27,4 @@ public class ExcelController {
     public Result<String> importMajorExcel() {
         return excelService.addMajor();
     }
-
-    @PostMapping("/addMajorSubject")
-    public Result<String> importMajorSubjectExcel() {
-        return excelService.addMajorSubject();
-    }
 }

@@ -6,7 +6,7 @@ import lombok.Data;
 /**
  * @author liujunliang
  * @date 2026/1/25
- * 通用基础实体类：适配 12 省差异化字段，仅保留核心字段
+ * 通用录取数据实体类：适配 12 省差异化字段，仅保留核心字段
  */
 @Data
 public class ExcelAdmissionDataEntity {
@@ -41,9 +41,4 @@ public class ExcelAdmissionDataEntity {
 
     @ExcelMultiProperty(value = {"专业名称", "专业组名称"}, optional = true)
     private String majorName;
-
-    private String originalCollegeMajorGroup;
-    private int sheetNo;
-    private boolean isValid = true;
-    private String errorMsg = "";
 }

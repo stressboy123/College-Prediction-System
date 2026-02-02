@@ -3,7 +3,6 @@ package com.gdut.listener;
 import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.event.AnalysisEventListener;
 import com.alibaba.excel.metadata.data.ReadCellData;
-import com.gdut.entity.ExcelAdmissionDataEntity;
 import com.gdut.entity.ExcelRawData;
 import com.gdut.target.ExcelMultiProperty;
 
@@ -15,20 +14,22 @@ import java.util.Map;
 
 /**
  * @author liujunliang
- * @date 2026/1/25
- * 实现多列名->统一实体字段的映射
+ * @date 2026/2/2
  */
-public class ExcelAdmissionDataListener extends AnalysisEventListener<ExcelRawData> {
-    private final List<ExcelAdmissionDataEntity> dataList = new ArrayList<>();
+public class ExcelMultiAliasListener<T> extends AnalysisEventListener<ExcelRawData> {
+    private final List<T> dataList;
     private Map<String, Integer> headNameIndexMap; // 列名 → 列索引
     private Map<Field, List<String>> fieldAliasMap; // 实体字段 → 注解别名列表
+    private final Class<T> targetClazz; // 目标实体Class（构造器传入，解决泛型擦除，用于反射创建实例/解析注解）
 
     /**
      * 构造器：初始化时解析所有字段的注解别名
-     * @param clazz 实体类字节码
+     * @param targetClazz 实体类字节码
      */
-    public ExcelAdmissionDataListener(Class<ExcelAdmissionDataEntity> clazz) {
-        this.fieldAliasMap = parseFieldAlias(clazz);
+    public ExcelMultiAliasListener(Class<T> targetClazz) {
+        this.targetClazz = targetClazz;
+        this.fieldAliasMap = parseFieldAlias(targetClazz);
+        this.dataList = new ArrayList<>();
     }
 
     /**
@@ -58,10 +59,12 @@ public class ExcelAdmissionDataListener extends AnalysisEventListener<ExcelRawDa
         }
 
         // 2. 初始化默认值
-        ExcelAdmissionDataEntity targetEntity = new ExcelAdmissionDataEntity();
-        targetEntity.setSheetNo(context.readSheetHolder().getSheetNo()); // 赋值sheetNo
-        targetEntity.setValid(true);
-        targetEntity.setErrorMsg("");
+        T targetEntity;
+        try {
+            targetEntity = targetClazz.newInstance();
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new RuntimeException("创建目标实体实例失败，实体类型：" + targetClazz.getName() + "，请确保有无参构造器", e);
+        }
 
         // 3. 遍历所有字段，按注解别名匹配赋值（核心逻辑）
         for (Map.Entry<Field, List<String>> entry : fieldAliasMap.entrySet()) {
@@ -108,7 +111,7 @@ public class ExcelAdmissionDataListener extends AnalysisEventListener<ExcelRawDa
             Object value = field.get(entity);
             return value == null ? null : value.toString().trim();
         } catch (NoSuchFieldException | IllegalAccessException e) {
-            // 列索引超出定义（如col14不存在），返回null
+            // 列索引超出定义，返回null
             return null;
         }
     }
@@ -136,7 +139,7 @@ public class ExcelAdmissionDataListener extends AnalysisEventListener<ExcelRawDa
      * @param clazz 注解类字节码
      * @return 字段-别名列表映射
      */
-    private Map<Field, List<String>> parseFieldAlias(Class<ExcelAdmissionDataEntity> clazz) {
+    private Map<Field, List<String>> parseFieldAlias(Class<T> clazz) {
         Map<Field, List<String>> map = new HashMap<>();
         Field[] fields = clazz.getDeclaredFields();
         for (Field field : fields) {
@@ -163,7 +166,7 @@ public class ExcelAdmissionDataListener extends AnalysisEventListener<ExcelRawDa
      * 获取读取到的所有数据
      * @return 最终数据
      */
-    public List<ExcelAdmissionDataEntity> getDataList() {
+    public List<T> getDataList() {
         return dataList;
     }
 }

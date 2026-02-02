@@ -12,18 +12,21 @@ import com.gdut.entity.TProvince;
 import com.gdut.service.ExcelService;
 import com.gdut.service.ITCollegeService;
 import com.gdut.service.ITMajorService;
-import com.gdut.service.ITMajorSubjectService;
 import com.gdut.service.ITProvinceService;
 import com.gdut.utils.ExcelReadUtil;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.io.File;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -33,14 +36,30 @@ import java.util.stream.Collectors;
  */
 @Service
 public class ExcelServiceImpl implements ExcelService {
+    // 定义首选科目集合（固定：物理/历史）
+    private static final Set<String> FIRST_SUBJECTS = Collections.unmodifiableSet(
+            new HashSet<String>() {{
+                add("物理");
+                add("历史");
+            }}
+    );
+    // 定义再选科目集合（固定：思想政治/地理/化学/生物）
+    private static final Set<String> SECOND_SUBJECTS = Collections.unmodifiableSet(
+            new HashSet<String>() {{
+                add("思想政治");
+                add("地理");
+                add("化学");
+                add("生物");
+            }}
+    );
     @Resource
     private ITProvinceService provinceService;
     @Resource
     private ITCollegeService collegeService;
     @Resource
     private ITMajorService majorService;
-    @Resource
-    private ITMajorSubjectService majorSubjectService;
+
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public Result<String> addCollege() {
         try {
@@ -140,6 +159,7 @@ public class ExcelServiceImpl implements ExcelService {
         }
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public Result<String> addMajor() {
         try {
@@ -184,33 +204,5 @@ public class ExcelServiceImpl implements ExcelService {
             e.printStackTrace();
             return Result.failWithOnlyMsg("执行失败：" + e.getMessage());
         }
-    }
-
-    @Override
-    public Result<String> addMajorSubject() {
-        try {
-            /*
-             * 广东：学校名称	学校代码	层次	专业名称	首选科目	再选科目及选考要求	类中所含专业及代码	招考方向
-             * 广西：院校代码	院校名称	专业代码	专业名称	包含专业	招考方向	考试科目要求
-             * 贵州：院校名称	专业名称	专业选考科目要求
-             * 河北：院校代码	院校名称	专业代码	专业名称	包含专业	招考方向	层次	选考科目要求
-             * 黑龙江：院校代码	院校名称	专业代码	专业名称	招考方向	包含专业	选考科目要求（存在一个单元格占多行，需要特殊处理）
-             * 湖北：院校名称	招生专业(类)	包含专业	招考方向	考试科目要求
-             * 湖南：院校代码	院校名称	招生专业（类）	包含招生专业名称	招考方向	招生层次	招生专业科目要求
-             * 江苏：院校代码	院校名称	专业代码	专业名称	招考方向	包含专业	考试科目要求
-             * 江西：院校及专业名称	专业选考科目要求（需要额外处理）
-             * 辽宁：层次名称	院校代码	院校名称	专业代码	专业名称	包含专业代码及名称	招考方向	选考科目要求
-             * 内蒙：院校名称	专业名称	包含专业	招考方向	选考科目要求
-             * 重庆：院校代码	院校名称	专业代码	招生专业（类）	包含专业	招考方向	招生层次	考试科目要求
-             */
-            String chineseExcelPath = "D:/教材/毕业论文/毕业论文数据/院校数据/院校库.xlsx";
-            File excelFile = new File(chineseExcelPath);
-            // 专业选科要求（需要处理格式和筛选内容）
-            List<ExcelRawData> data = ExcelReadUtil.readForExcelAllSheetOrigin(excelFile, 2, ExcelTypeEnum.XLSX);
-        } catch (Exception e) {
-            System.out.println("执行失败：" + e.getMessage());
-            e.printStackTrace();
-        }
-        return null;
     }
 }
