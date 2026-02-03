@@ -67,10 +67,6 @@ public class TEnrollmentPlan {
      */
     private String majorRemark;
     /**
-     * 其他要求
-     */
-    private String otherRequirements;
-    /**
      * 选科要求
      */
     private String subjectRequirement;
@@ -85,5 +81,5 @@ public class TEnrollmentPlan {
     /**
      * 学费（元/年）
      */
-    private Integer tuitionFee;
+    private String tuitionFee;
 }

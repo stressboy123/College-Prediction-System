@@ -27,4 +27,19 @@ public class ExcelController {
     public Result<String> importMajorExcel() {
         return excelService.addMajor();
     }
+
+    @PostMapping("/addEnrollmentPlan")
+    public Result<String> importEnrollmentPlanExcel() {
+        return excelService.addEnrollmentPlan();
+    }
+
+    @PostMapping("/getAdmissionData")
+    public Result<String> importAdmissionDataExcel() {
+        return excelService.getAdmissionData();
+    }
+
+    @PostMapping("/addScoreRank")
+    public Result<String> importScoreRankExcel() {
+        return excelService.addScoreRank();
+    }
 }

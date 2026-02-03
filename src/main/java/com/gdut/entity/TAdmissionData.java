@@ -33,15 +33,16 @@ public class TAdmissionData {
      */
     private Integer provinceId;
     /**
-     * 批次
+     * 批次（本科批/本科提前批/特殊类型招生批/专科批/专科提前批）
      */
     private String batch;
     /**
-     * 批次备注
+     * 批次备注（本科/特殊类型招生/提前批本科.非军检院校/提前批本科.教师专项/提前批本科.军检院校（含公安）/
+     * 提前批本科.空军、海军招飞/提前批本科.卫生专项/提前批专科.定向培养军士提前批专科.卫生专项/专科）
      */
     private String batchRemark;
     /**
-     * 科类
+     * 科类（物理/历史）
      */
     private String subjectType;
     /**

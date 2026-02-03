@@ -7,7 +7,6 @@ import com.alibaba.excel.support.ExcelTypeEnum;
 import com.gdut.entity.ExcelAdmissionDataEntity;
 import com.gdut.entity.ExcelCollegeDetailEntity;
 import com.gdut.entity.ExcelCollegeEntity;
-import com.gdut.entity.ExcelEnrollmentPlanEntity;
 import com.gdut.entity.ExcelMajorEntity;
 import com.gdut.entity.ExcelRawData;
 import com.gdut.listener.ExcelMultiAliasListener;
@@ -76,22 +75,6 @@ public class ExcelReadUtil {
                 .head(ExcelMajorEntity.class)
                 .sheet(sheetNo)
                 .doReadSync();
-        return list;
-    }
-
-    /**
-     * 读取招生计划（多sheet）
-     * @param excelFile excel文件
-     * @param headRowNum 头行数
-     * @param type 文件类型
-     * @return 招生计划数据
-     */
-    public static List<ExcelEnrollmentPlanEntity> readForExcelEnrollmentPlan(File excelFile, int headRowNum, ExcelTypeEnum type) {
-        List<ExcelEnrollmentPlanEntity> list = EasyExcel.read(excelFile)
-                .headRowNumber(headRowNum)
-                .excelType(type)
-                .head(ExcelEnrollmentPlanEntity.class)
-                .doReadAllSync();
         return list;
     }
 

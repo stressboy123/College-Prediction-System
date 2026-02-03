@@ -10,4 +10,10 @@ public interface ExcelService {
     Result<String> addCollege();
 
     Result<String> addMajor();
+
+    Result<String> addEnrollmentPlan();
+
+    Result<String> getAdmissionData();
+
+    Result<String> addScoreRank();
 }
