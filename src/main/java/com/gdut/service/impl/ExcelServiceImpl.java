@@ -1,16 +1,21 @@
 package com.gdut.service.impl;
 
 import com.alibaba.excel.support.ExcelTypeEnum;
+import com.gdut.entity.ExcelAdmissionDataEntity;
 import com.gdut.entity.ExcelCollegeDetailEntity;
 import com.gdut.entity.ExcelCollegeEntity;
 import com.gdut.entity.ExcelMajorEntity;
 import com.gdut.entity.ExcelRawData;
 import com.gdut.entity.Result;
+import com.gdut.entity.TAdmissionData;
 import com.gdut.entity.TCollege;
+import com.gdut.entity.TEnrollmentPlan;
 import com.gdut.entity.TMajor;
 import com.gdut.entity.TProvince;
 import com.gdut.service.ExcelService;
+import com.gdut.service.ITAdmissionDataService;
 import com.gdut.service.ITCollegeService;
+import com.gdut.service.ITEnrollmentPlanService;
 import com.gdut.service.ITMajorService;
 import com.gdut.service.ITProvinceService;
 import com.gdut.utils.ExcelReadUtil;
@@ -58,6 +63,10 @@ public class ExcelServiceImpl implements ExcelService {
     private ITCollegeService collegeService;
     @Resource
     private ITMajorService majorService;
+    @Resource
+    private ITEnrollmentPlanService enrollmentPlanService;
+    @Resource
+    private ITAdmissionDataService admissionDataService;
 
     @Transactional(rollbackFor = Exception.class)
     @Override
@@ -197,12 +206,296 @@ public class ExcelServiceImpl implements ExcelService {
                     major.setThreeYearEmploymentRate(excelMajorEntity.getMajorEmploymentRate());
                     majors.add(major);
                 }
-                System.out.println(excelData.size());
             }
             return majorService.saveBatch(majors) ? Result.success() : Result.failWithOnlyMsg("插入失败");
         } catch (Exception e) {
             e.printStackTrace();
             return Result.failWithOnlyMsg("执行失败：" + e.getMessage());
         }
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public Result<String> addEnrollmentPlan() {
+        try {
+            List<TProvince> list = provinceService.list();
+            Map<String, Integer> map = list.stream().collect(Collectors.toMap(TProvince::getProvinceName, TProvince::getId));
+            List<TEnrollmentPlan> enrollmentPlans = new ArrayList<>();
+            String path = "D:/教材/毕业论文/毕业论文数据/当前传输";
+            File folder = new File(path);
+            if (!folder.exists()) {
+                return Result.failWithOnlyMsg("文件夹不存在：" + path);
+            }
+            if (!folder.isDirectory()) {
+                return Result.failWithOnlyMsg("路径不是文件夹：" + path);
+            }
+            File[] allFiles = folder.listFiles();
+            if (allFiles == null || allFiles.length == 0) {
+                return Result.failWithOnlyMsg("当前文件夹无任何文件：" + path);
+            }
+            for (File excelFile : allFiles) {
+                String name = excelFile.getName();
+                List<ExcelRawData> data = ExcelReadUtil.readForExcelAllSheetOrigin(excelFile, 2, ExcelTypeEnum.XLSX);
+                for (ExcelRawData excelRawData : data) {
+                    TEnrollmentPlan tEnrollmentPlan = new TEnrollmentPlan();
+                    if (name.contains("2023")) {
+                        tEnrollmentPlan.setYear(2023);
+                        tEnrollmentPlan.setProvinceId(map.get("广东省"));
+                        String majorRemark = "";
+                        // 院校代码
+                        tEnrollmentPlan.setCollegeCode(excelRawData.getCol0());
+                        // 院校名称
+                        tEnrollmentPlan.setCollegeName(excelRawData.getCol1());
+                        // 批次
+                        String batch = "";
+                        String batchRemark = excelRawData.getCol2();
+                        if ("本科".equals(batchRemark)) {
+                            batch = "本科批";
+                        } else if ("特殊类型招生".equals(batchRemark)) {
+                            batch = "特殊类型招生批";
+                        } else if (batchRemark.contains("提前批本科")) {
+                            batch = "本科提前批";
+                        } else if ("提前批专科".equals(batchRemark)) {
+                            batch = "专科提前批";
+                            batchRemark = "提前批专科.定向培养军士";
+                        } else if ("提前批专科.卫生专项".equals(batchRemark)) {
+                            batch = "专科提前批";
+                        } else if ("专科".equals(batchRemark)) {
+                            batch = "专科批";
+                        }
+                        tEnrollmentPlan.setBatch(batch);
+                        tEnrollmentPlan.setBatchRemark(batchRemark);
+                        // 科类
+                        if (excelRawData.getCol3().contains("物理")) {
+                            tEnrollmentPlan.setSubjectType("物理");
+                        } else if (excelRawData.getCol3().contains("历史")) {
+                            tEnrollmentPlan.setSubjectType("历史");
+                        }
+                        // 专业组代码
+                        tEnrollmentPlan.setMajorGroupCode(excelRawData.getCol4());
+                        // 专业代码
+                        tEnrollmentPlan.setMajorCode(excelRawData.getCol5());
+                        // 专业名称
+                        tEnrollmentPlan.setMajorName(excelRawData.getCol6());
+                        // 专业方向
+                        String col7 = excelRawData.getCol7();
+                        if (col7 != null && col7.length() != 0) {
+                            majorRemark += "(" + col7 + ")";
+                        }
+                        // 招生人数
+                        tEnrollmentPlan.setPlanCount(Integer.valueOf(excelRawData.getCol8()));
+                        // 计划性质名称
+                        String col9 = excelRawData.getCol9();
+                        if (col9 != null && col9.length() != 0) {
+                            majorRemark += "(" + col9 + ")";
+                        }
+                        // 学制
+                        tEnrollmentPlan.setSchoolSystem(Integer.valueOf(excelRawData.getCol10()));
+                        // 收费标准
+                        tEnrollmentPlan.setTuitionFee(excelRawData.getCol11());
+                        // 办学地点
+                        String col12 = excelRawData.getCol12();
+                        if (col12 != null && col12.length() != 0) {
+                            majorRemark += "(" + col12 + ")";
+                        }
+                        // 选考科目
+                        tEnrollmentPlan.setSubjectRequirement(excelRawData.getCol13());
+                        // 成绩要求
+                        String col14 = excelRawData.getCol14();
+                        if (col14 != null && col14.length() != 0) {
+                            majorRemark += "(" + col14 + ")";
+                        }
+                        // 外语语种
+                        String col15 = excelRawData.getCol15();
+                        if (col15 != null && col15.length() != 0) {
+                            majorRemark += "(" + col15 + ")";
+                        }
+                        // 招生特征
+                        String col16 = excelRawData.getCol16();
+                        if (col16 != null && col16.length() != 0) {
+                            majorRemark += "(" + col16 + ")";
+                        }
+                        tEnrollmentPlan.setMajorRemark(majorRemark);
+                    } else if (name.contains("2024")) {
+                        // 年份
+                        tEnrollmentPlan.setYear(Integer.valueOf(excelRawData.getCol0()));
+                        // 生源地
+                        tEnrollmentPlan.setProvinceId(map.get("广东省"));
+                        // 批次名称
+                        String batch = "";
+                        String batchRemark = excelRawData.getCol2();
+                        if ("本科".equals(batchRemark)) {
+                            batch = "本科批";
+                        } else if ("特殊类型招生".equals(batchRemark)) {
+                            batch = "特殊类型招生批";
+                        } else if (batchRemark.contains("提前批本科")) {
+                            batch = "本科提前批";
+                        } else if ("提前批专科".equals(batchRemark)) {
+                            batch = "专科提前批";
+                            batchRemark = "提前批专科.定向培养军士";
+                        } else if ("提前批专科.卫生专项".equals(batchRemark)) {
+                            batch = "专科提前批";
+                        } else if ("专科".equals(batchRemark)) {
+                            batch = "专科批";
+                        }
+                        tEnrollmentPlan.setBatch(batch);
+                        tEnrollmentPlan.setBatchRemark(batchRemark);
+                        // 计划类别名称
+                        if (excelRawData.getCol3().contains("物理")) {
+                            tEnrollmentPlan.setSubjectType("物理");
+                        } else if (excelRawData.getCol3().contains("历史")) {
+                            tEnrollmentPlan.setSubjectType("历史");
+                        }
+                        // 院校代码
+                        tEnrollmentPlan.setCollegeCode(excelRawData.getCol4());
+                        // 院校名称
+                        tEnrollmentPlan.setCollegeName(excelRawData.getCol5());
+                        // 专业组代码
+                        tEnrollmentPlan.setMajorGroupCode(excelRawData.getCol6());
+                        // 专业代码
+                        tEnrollmentPlan.setMajorCode(excelRawData.getCol7());
+                        // 专业名称
+                        tEnrollmentPlan.setMajorName(excelRawData.getCol8());
+                        // 专业备注
+                        tEnrollmentPlan.setMajorRemark(excelRawData.getCol9());
+                        // 选考科目
+                        tEnrollmentPlan.setSubjectRequirement(excelRawData.getCol10());
+                        // 招生人数
+                        tEnrollmentPlan.setPlanCount(Integer.valueOf(excelRawData.getCol11()));
+                        // 学制
+                        tEnrollmentPlan.setSchoolSystem(Integer.valueOf(excelRawData.getCol12()));
+                        // 收费标准
+                        tEnrollmentPlan.setTuitionFee(excelRawData.getCol13());
+                    } else if (name.contains("2025")) {
+                        // 年份
+                        tEnrollmentPlan.setYear(Integer.valueOf(excelRawData.getCol0()));
+                        // 生源地
+                        tEnrollmentPlan.setProvinceId(map.get("广东省"));
+                        // 批次
+                        tEnrollmentPlan.setBatch(excelRawData.getCol2());
+                        // 批次备注
+                        tEnrollmentPlan.setBatchRemark(excelRawData.getCol3());
+                        // 科类
+                        tEnrollmentPlan.setSubjectType(excelRawData.getCol4());
+                        // 院校代码
+                        tEnrollmentPlan.setCollegeCode(excelRawData.getCol5());
+                        // 院校名称
+                        tEnrollmentPlan.setCollegeName(excelRawData.getCol6());
+                        // 专业组代码
+                        tEnrollmentPlan.setMajorGroupCode(excelRawData.getCol7());
+                        // 专业代码
+                        tEnrollmentPlan.setMajorCode(excelRawData.getCol8());
+                        // 专业名称
+                        tEnrollmentPlan.setMajorName(excelRawData.getCol9());
+                        // 专业备注（加其他要求：成绩要求/语种要求/空）
+                        String majorRemark = "";
+                        String col10 = excelRawData.getCol10();
+                        if (col10 != null && col10.length() != 0) {
+                            majorRemark += col10;
+                        }
+                        String col11 = excelRawData.getCol11();
+                        if (col11 != null && col11.length() != 0) {
+                            majorRemark += col11;
+                        }
+                        tEnrollmentPlan.setMajorRemark(majorRemark);
+                        // 选科要求
+                        tEnrollmentPlan.setSubjectRequirement(excelRawData.getCol12());
+                        // 计划人数
+                        tEnrollmentPlan.setPlanCount(Integer.valueOf(excelRawData.getCol13()));
+                        // 学制
+                        tEnrollmentPlan.setSchoolSystem(Integer.valueOf(excelRawData.getCol14()));
+                        // 学费
+                        tEnrollmentPlan.setTuitionFee(excelRawData.getCol15());
+                    }
+                    enrollmentPlans.add(tEnrollmentPlan);
+                }
+            }
+            List<TEnrollmentPlan> temp = new ArrayList<>();
+            try {
+                for (int i = 0; i < enrollmentPlans.size(); i++) {
+                    temp.add(enrollmentPlans.get(i));
+                    if (temp.size() >= 1000 || i == enrollmentPlans.size() - 1) {
+                        enrollmentPlanService.saveBatch(temp);
+                        temp.clear();
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                return Result.failWithOnlyMsg("执行失败：" + e.getMessage());
+            }
+            return Result.success();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Result.failWithOnlyMsg("执行失败：" + e.getMessage());
+        }
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public Result<String> getAdmissionData() {
+        try {
+            List<TAdmissionData> admissionData = new ArrayList<>();
+            List<TProvince> list = provinceService.list();
+            Map<String, Integer> map = list.stream().collect(Collectors.toMap(TProvince::getProvinceName, TProvince::getId));
+            String path = "D:/教材/毕业论文/毕业论文数据/当前传输";
+            String province = "广东省";
+            int year = 2023;
+            String batch = "本科批";
+            String batchRemark = "本科";
+            String subjectType = "物理";
+            int headRowNum = 2;
+            ExcelTypeEnum type = ExcelTypeEnum.XLSX;
+            String folderPath = path + "/" + province + "/" + year + "/" + batch;
+            File folder = new File(folderPath);
+            if (!folder.exists()) {
+                return Result.failWithOnlyMsg("文件夹不存在：" + folderPath);
+            }
+            if (!folder.isDirectory()) {
+                return Result.failWithOnlyMsg("路径不是文件夹：" + folderPath);
+            }
+            File[] allFiles = folder.listFiles();
+            if (allFiles == null || allFiles.length == 0) {
+                return Result.failWithOnlyMsg("当前文件夹无任何文件：" + folderPath);
+            }
+            for (File file : allFiles) {
+                List<ExcelAdmissionDataEntity> data = ExcelReadUtil.readForExcelAdmissionDataAllSheets(file, headRowNum, type);
+                for (ExcelAdmissionDataEntity excelAdmissionDataEntity : data) {
+                    TAdmissionData admissionDataEntity = new TAdmissionData();
+                    admissionDataEntity.setYear(year);
+                    admissionDataEntity.setProvinceId(map.get(province));
+                    admissionDataEntity.setBatch(batch);
+                    admissionDataEntity.setBatchRemark(batchRemark);
+                    admissionDataEntity.setSubjectType(subjectType);
+                    admissionDataEntity.setCollegeCode(excelAdmissionDataEntity.getCollegeCode());
+                    admissionDataEntity.setCollegeName(excelAdmissionDataEntity.getCollegeName());
+                    admissionDataEntity.setMajorGroupCode(excelAdmissionDataEntity.getMajorGroup());
+                    admissionDataEntity.setMajorCode(excelAdmissionDataEntity.getMajorGroup());
+                    admissionDataEntity.setMajorName(excelAdmissionDataEntity.getMajorName());
+                    admissionDataEntity.setLowestAdmissionScore(new BigDecimal(excelAdmissionDataEntity.getLowestScore()));
+                    admissionDataEntity.setLowestAdmissionRank(Integer.parseInt(excelAdmissionDataEntity.getLowestRank()));
+                    admissionData.add(admissionDataEntity);
+                }
+            }
+            System.out.println("数据条数：" + admissionData.size());
+            return Result.success();
+//            return admissionDataService.saveBatch(admissionData) ? Result.success() : Result.failWithOnlyMsg("插入失败");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Result.failWithOnlyMsg("执行失败：" + e.getMessage());
+        }
+    }
+
+    @Override
+    public Result<String> addScoreRank() {
+        try {
+            String chineseExcelPath = "D:/教材/毕业论文/毕业论文数据/院校数据/院校库.xlsx";
+            File excelFile = new File(chineseExcelPath);
+            // 一分一段
+            List<ExcelRawData> data = ExcelReadUtil.readForExcelAllSheetOrigin(excelFile, 2, ExcelTypeEnum.XLSX);
+        } catch (Exception e) {
+            System.out.println("执行失败：" + e.getMessage());
+            e.printStackTrace();
+        }
+        return null;
     }
 }
