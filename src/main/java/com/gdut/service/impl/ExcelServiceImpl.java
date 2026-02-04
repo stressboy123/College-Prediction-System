@@ -238,163 +238,156 @@ public class ExcelServiceImpl implements ExcelService {
                 List<ExcelRawData> data = ExcelReadUtil.readForExcelAllSheetOrigin(excelFile, 2, ExcelTypeEnum.XLSX);
                 for (ExcelRawData excelRawData : data) {
                     TEnrollmentPlan tEnrollmentPlan = new TEnrollmentPlan();
-                    if (name.contains("2024")) {
-                        // 年份
-                        tEnrollmentPlan.setYear(Integer.valueOf(excelRawData.getCol0()));
-                        // 省份
-                        tEnrollmentPlan.setProvinceId(map.get("贵州省"));
-                        // 院校名称
-                        tEnrollmentPlan.setCollegeName(excelRawData.getCol2());
+                    if (name.contains("2023")) {
+                        tEnrollmentPlan.setYear(2023);
+                        tEnrollmentPlan.setProvinceId(map.get("河北省"));
+                        // 批次名称
+                        tEnrollmentPlan.setBatch(excelRawData.getCol0());
+                        // 科类名称
+                        tEnrollmentPlan.setSubjectType(excelRawData.getCol1());
+                        // 计划性质
                         // 院校代码
                         tEnrollmentPlan.setCollegeCode(excelRawData.getCol3());
-                        // 专业组
-                        //String col4 = excelRawData.getCol4();
-                        // 专业组编号
+                        // 院校名称
+                        String col4 = excelRawData.getCol4();
+                        String collegeName = col4.replaceAll("\\(.*?\\)|\\[.*?\\]", "").trim();
+                        tEnrollmentPlan.setCollegeName(collegeName);
+                        // 专业代码
+                        tEnrollmentPlan.setMajorCode(excelRawData.getCol5());
                         tEnrollmentPlan.setMajorGroupCode(excelRawData.getCol5());
                         // 专业名称
-                        tEnrollmentPlan.setMajorName(excelRawData.getCol6());
-                        // 专业代码
-                        tEnrollmentPlan.setMajorCode(excelRawData.getCol7());
-                        // 科目
-                        tEnrollmentPlan.setSubjectType(excelRawData.getCol8());
-                        // 再选
-                        tEnrollmentPlan.setSubjectRequirement(excelRawData.getCol9());
-                        // 批次
-                        String batch = "";
-                        String batchRemark = excelRawData.getCol10();
-                        if ("本科".equals(batchRemark)) {
-                            batch = "本科批";
-                        } else if (batchRemark.contains("本科提前批")) {
-                            batch = "本科提前批";
-                        } else if ("高职(专科)提前批".equals(batchRemark)) {
-                            batch = "专科提前批";
-                        } else if ("高职专科".equals(batchRemark)) {
-                            batch = "专科批";
-                        }
-                        tEnrollmentPlan.setBatch(batch);
-                        tEnrollmentPlan.setBatchRemark(batchRemark);
-                        // 外语语种
-                        String col11 = excelRawData.getCol11();
-                        // 计划数
-                        tEnrollmentPlan.setPlanCount(Integer.valueOf(excelRawData.getCol12()));
-                        // 学制
-                        String col13 = excelRawData.getCol13();
-                        int schoolSystem = 0;
-                        if (col13.contains("一")) {
-                            schoolSystem = 1;
-                        } else if (col13.contains("二")) {
-                            schoolSystem = 2;
-                        } else if (col13.contains("三")) {
-                            schoolSystem = 3;
-                        } else if (col13.contains("四")) {
-                            schoolSystem = 4;
-                        } else if (col13.contains("五")) {
-                            schoolSystem = 5;
-                        } else if (col13.contains("六")) {
-                            schoolSystem = 6;
-                        } else if (col13.contains("七")) {
-                            schoolSystem = 7;
-                        } else if (col13.contains("八")) {
-                            schoolSystem = 8;
-                        } else if (col13.contains("九")) {
-                            schoolSystem = 9;
-                        }
-                        tEnrollmentPlan.setSchoolSystem(schoolSystem);
-                        // 收费标准
-                        tEnrollmentPlan.setTuitionFee(excelRawData.getCol14() == null ? "" : excelRawData.getCol14());
-                        // 备注
-                        String majorRemark = excelRawData.getCol15() == null ? "" : excelRawData.getCol15();
-                        if (col11 != null && !"不限".equals(col11)) {
-                            majorRemark += "(" + col11 + ")";
-                        }
-                        // 省
-                        // 市
-                        // 校区
-                        String col18 = excelRawData.getCol18();
-                        if (col18 != null) {
-                            majorRemark += "(" + col18 + ")";
-                        }
-                        tEnrollmentPlan.setMajorRemark(majorRemark);
-                    } else if (name.contains("2025")) {
-                        // 年份
-                        tEnrollmentPlan.setYear(Integer.valueOf(excelRawData.getCol0()));
-                        // 生源地
-                        tEnrollmentPlan.setProvinceId(map.get("贵州省"));
-                        // 批次
-                        String batch = excelRawData.getCol2();
-                        // 招生类型
-                        String batchRemark = excelRawData.getCol3();
-                        if ("本科".equals(batch)) {
-                            batch = "本科批";
-                        } else if (batch.contains("本科提前批")) {
-                            batch = "本科提前批";
-                        } else if ("高职(专科)提前批".equals(batch)) {
-                            batch = "专科提前批";
-                        } else if ("高职专科".equals(batch)) {
-                            batch = "专科批";
-                        }
-                        tEnrollmentPlan.setBatch(batch);
-                        tEnrollmentPlan.setBatchRemark(batchRemark);
-                        // 科类
-                        tEnrollmentPlan.setSubjectType(excelRawData.getCol4());
-                        // 选科要求
-                        tEnrollmentPlan.setSubjectRequirement(excelRawData.getCol5());
-                        // 院校代码
-                        tEnrollmentPlan.setCollegeCode(excelRawData.getCol6());
-                        // 院校名称
-                        tEnrollmentPlan.setCollegeName(excelRawData.getCol7());
-                        // 专业代码
-                        String majorCode = excelRawData.getCol8();
-                        tEnrollmentPlan.setMajorCode(majorCode);
-                        tEnrollmentPlan.setMajorGroupCode(majorCode);
-                        // 专业名称
-                        String col9 = excelRawData.getCol9();
-                        String majorName;
-                        // 专业备注
-                        String majorRemark = excelRawData.getCol10();
-                        int idx = col9.indexOf("(");
+                        String col6 = excelRawData.getCol6();
+                        String majorName = "";
+                        String majorRemarkAdd = "";
+                        int idx = col6.indexOf("(");
                         if (idx > -1) {
-                            majorName = col9.substring(0, idx).trim();
-                            majorRemark += col9.substring(idx).trim();
+                            majorName = col6.substring(0, idx).trim();
+                            majorRemarkAdd += col6.substring(idx).trim();
                         } else {
-                            majorName = col9.trim();
+                            majorName = col6.trim();
                         }
                         tEnrollmentPlan.setMajorName(majorName);
-                        // 计划人数
-                        tEnrollmentPlan.setPlanCount(Integer.valueOf(excelRawData.getCol11()));
-                        // 外语语种
-                        String col12 = excelRawData.getCol12();
-                        if (!"不限".equals(col12) && col12 != null) {
-                            majorRemark += "(" + col12 + ")";
+                        // 专业简注
+                        String majorRemark = "";
+                        String col7 = excelRawData.getCol7();
+                        if (col7 != null && col7.length() > 0) {
+                            majorRemark += col7;
+                        }
+                        if (majorRemarkAdd.length() > 0) {
+                            majorRemark += majorRemarkAdd;
                         }
                         tEnrollmentPlan.setMajorRemark(majorRemark);
-                        // 是否口试
-                        //String col13 = excelRawData.getCol13();
+                        // 三高类型
+                        tEnrollmentPlan.setBatchRemark(excelRawData.getCol8() == null ? "" : excelRawData.getCol8());
+                        // 次选科目
+                        tEnrollmentPlan.setSubjectRequirement(excelRawData.getCol9());
+                        // 计划数
+                        tEnrollmentPlan.setPlanCount(Integer.parseInt(excelRawData.getCol10()));
                         // 学制
-                        String col14 = excelRawData.getCol14();
-                        int schoolSystem = 0;
-                        if (col14.contains("一")) {
-                            schoolSystem = 1;
-                        } else if (col14.contains("二")) {
-                            schoolSystem = 2;
-                        } else if (col14.contains("三")) {
-                            schoolSystem = 3;
-                        } else if (col14.contains("四")) {
-                            schoolSystem = 4;
-                        } else if (col14.contains("五")) {
-                            schoolSystem = 5;
-                        } else if (col14.contains("六")) {
-                            schoolSystem = 6;
-                        } else if (col14.contains("七")) {
-                            schoolSystem = 7;
-                        } else if (col14.contains("八")) {
-                            schoolSystem = 8;
-                        } else if (col14.contains("九")) {
-                            schoolSystem = 9;
-                        }
-                        tEnrollmentPlan.setSchoolSystem(schoolSystem);
+                        tEnrollmentPlan.setSchoolSystem(Integer.parseInt(excelRawData.getCol11()));
                         // 学费
-                        tEnrollmentPlan.setTuitionFee(excelRawData.getCol15());
+                        tEnrollmentPlan.setTuitionFee(excelRawData.getCol12());
+                    } else if (name.contains("2024")) {
+                        tEnrollmentPlan.setYear(2024);
+                        tEnrollmentPlan.setProvinceId(map.get("河北省"));
+                        // 年份
+                        // 批次名称
+                        tEnrollmentPlan.setBatch(excelRawData.getCol1());
+                        // 科类名称
+                        tEnrollmentPlan.setSubjectType(excelRawData.getCol2());
+                        // 计划性质
+                        // 院校类型
+                        // 院校代码
+                        tEnrollmentPlan.setCollegeCode(excelRawData.getCol5());
+                        // 院校名称
+                        String col6 = excelRawData.getCol6();
+                        String collegeName = col6.replaceAll("\\(.*?\\)|\\[.*?\\]", "").trim();
+                        tEnrollmentPlan.setCollegeName(collegeName);
+                        // 专业代码
+                        tEnrollmentPlan.setMajorCode(excelRawData.getCol7());
+                        tEnrollmentPlan.setMajorGroupCode(excelRawData.getCol7());
+                        // 专业名称
+                        String col8 = excelRawData.getCol8();
+                        String majorName = "";
+                        String majorRemarkAdd = "";
+                        int idx = col8.indexOf("(");
+                        if (idx > -1) {
+                            majorName = col8.substring(0, idx).trim();
+                            majorRemarkAdd += col8.substring(idx).trim();
+                        } else {
+                            majorName = col8.trim();
+                        }
+                        tEnrollmentPlan.setMajorName(majorName);
+                        // 简注
+                        String majorRemark = "";
+                        String col9 = excelRawData.getCol9();
+                        if (col9 != null && col9.length() > 0) {
+                            majorRemark += col9;
+                        }
+                        if (majorRemarkAdd.length() > 0) {
+                            majorRemark += majorRemarkAdd;
+                        }
+                        tEnrollmentPlan.setMajorRemark(majorRemark);
+                        // 特殊类型
+                        tEnrollmentPlan.setBatchRemark(excelRawData.getCol10() == null ? "" : excelRawData.getCol10());
+                        // 次选科目
+                        tEnrollmentPlan.setSubjectRequirement(excelRawData.getCol11());
+                        // 计划数
+                        tEnrollmentPlan.setPlanCount(Integer.parseInt(excelRawData.getCol12()));
+                        // 学制
+                        tEnrollmentPlan.setSchoolSystem(Integer.parseInt(excelRawData.getCol13()));
+                        // 学费
+                        tEnrollmentPlan.setTuitionFee(excelRawData.getCol14());
+                    } else if (name.contains("2025")) {
+                        tEnrollmentPlan.setYear(2025);
+                        tEnrollmentPlan.setProvinceId(map.get("河北省"));
+                        // 定向
+                        // 科类
+                        tEnrollmentPlan.setSubjectType(excelRawData.getCol1());
+                        // 科类说明
+                        tEnrollmentPlan.setBatchRemark(excelRawData.getCol2());
+                        // 批次
+                        tEnrollmentPlan.setBatch(excelRawData.getCol3());
+                        // 院校代码
+                        tEnrollmentPlan.setCollegeCode(excelRawData.getCol4());
+                        // 院校名称
+                        String col5 = excelRawData.getCol5();
+                        String collegeName = col5.replaceAll("\\(.*?\\)|\\[.*?\\]", "").trim();
+                        tEnrollmentPlan.setCollegeName(collegeName);
+                        // 专业代码
+                        tEnrollmentPlan.setMajorCode(excelRawData.getCol6());
+                        tEnrollmentPlan.setMajorGroupCode(excelRawData.getCol6());
+                        // 专业名称
+                        String col7 = excelRawData.getCol7();
+                        String majorName = "";
+                        String majorRemarkAdd = "";
+                        int idx = col7.indexOf("(");
+                        if (idx > -1) {
+                            majorName = col7.substring(0, idx).trim();
+                            majorRemarkAdd += col7.substring(idx).trim();
+                        } else {
+                            majorName = col7.trim();
+                        }
+                        tEnrollmentPlan.setMajorName(majorName);
+                        // 专业简注
+                        String majorRemark = "";
+                        String col8 = excelRawData.getCol8();
+                        if (col8 != null && col8.length() > 0) {
+                            majorRemark += col8;
+                        }
+                        if (majorRemarkAdd.length() > 0) {
+                            majorRemark += majorRemarkAdd;
+                        }
+                        tEnrollmentPlan.setMajorRemark(majorRemark);
+                        // 计划数
+                        tEnrollmentPlan.setPlanCount(Integer.parseInt(excelRawData.getCol9()));
+                        // 学制
+                        tEnrollmentPlan.setSchoolSystem(Integer.parseInt(excelRawData.getCol10()));
+                        // 学费
+                        tEnrollmentPlan.setTuitionFee(excelRawData.getCol11());
+                        // 选科
+                        tEnrollmentPlan.setSubjectRequirement(excelRawData.getCol12());
+                        // 特殊类型
                     }
                     enrollmentPlans.add(tEnrollmentPlan);
                 }
