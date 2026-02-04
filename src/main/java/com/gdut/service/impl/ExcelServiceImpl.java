@@ -242,9 +242,33 @@ public class ExcelServiceImpl implements ExcelService {
                         tEnrollmentPlan.setYear(2023);
                         tEnrollmentPlan.setProvinceId(map.get("河北省"));
                         // 批次名称
-                        tEnrollmentPlan.setBatch(excelRawData.getCol0());
+                        String col0 = excelRawData.getCol0();
+                        String batch = "";
+                        if ("本科批".equals(col0)) {
+                            batch = "本科批";
+                        } else if (col0.contains("本科提前批")) {
+                            batch = "本科提前批";
+                        } else if ("对口本科批".equals(col0)) {
+                            batch = "对口本科批";
+                        } else if ("对口专科批".equals(col0)) {
+                            batch = "对口专科批";
+                        } else if ("专科批".equals(col0)) {
+                            batch = "专科批";
+                        } else if ("专科提前批".equals(col0)) {
+                            batch = "专科提前批";
+                        }
+                        tEnrollmentPlan.setBatch(batch);
                         // 科类名称
-                        tEnrollmentPlan.setSubjectType(excelRawData.getCol1());
+                        String col1 = excelRawData.getCol1();
+                        String subjectType = "";
+                        if (col1.contains("物理")) {
+                            subjectType = "物理";
+                        } else if (col1.contains("历史")) {
+                            subjectType = "历史";
+                        } else {
+                            subjectType = col1;
+                        }
+                        tEnrollmentPlan.setSubjectType(subjectType);
                         // 计划性质
                         // 院校代码
                         tEnrollmentPlan.setCollegeCode(excelRawData.getCol3());
@@ -278,7 +302,12 @@ public class ExcelServiceImpl implements ExcelService {
                         }
                         tEnrollmentPlan.setMajorRemark(majorRemark);
                         // 三高类型
-                        tEnrollmentPlan.setBatchRemark(excelRawData.getCol8() == null ? "" : excelRawData.getCol8());
+                        String col8 = excelRawData.getCol8();
+                        String batchRemark = col0;
+                        if (col8 != null && col8.length() > 0) {
+                            batchRemark += "." + col8;
+                        }
+                        tEnrollmentPlan.setBatchRemark(batchRemark);
                         // 次选科目
                         tEnrollmentPlan.setSubjectRequirement(excelRawData.getCol9());
                         // 计划数
@@ -292,9 +321,33 @@ public class ExcelServiceImpl implements ExcelService {
                         tEnrollmentPlan.setProvinceId(map.get("河北省"));
                         // 年份
                         // 批次名称
-                        tEnrollmentPlan.setBatch(excelRawData.getCol1());
+                        String col1 = excelRawData.getCol1();
+                        String batch = "";
+                        if ("本科批".equals(col1)) {
+                            batch = "本科批";
+                        } else if (col1.contains("本科提前批")) {
+                            batch = "本科提前批";
+                        } else if ("对口本科批".equals(col1)) {
+                            batch = "对口本科批";
+                        } else if ("对口专科批".equals(col1)) {
+                            batch = "对口专科批";
+                        } else if ("专科批".equals(col1)) {
+                            batch = "专科批";
+                        } else if ("专科提前批".equals(col1)) {
+                            batch = "专科提前批";
+                        }
+                        tEnrollmentPlan.setBatch(batch);
                         // 科类名称
-                        tEnrollmentPlan.setSubjectType(excelRawData.getCol2());
+                        String col2 = excelRawData.getCol2();
+                        String subjectType = "";
+                        if (col2.contains("物理")) {
+                            subjectType = "物理";
+                        } else if (col2.contains("历史")) {
+                            subjectType = "历史";
+                        } else {
+                            subjectType = col2;
+                        }
+                        tEnrollmentPlan.setSubjectType(subjectType);
                         // 计划性质
                         // 院校类型
                         // 院校代码
@@ -329,7 +382,12 @@ public class ExcelServiceImpl implements ExcelService {
                         }
                         tEnrollmentPlan.setMajorRemark(majorRemark);
                         // 特殊类型
-                        tEnrollmentPlan.setBatchRemark(excelRawData.getCol10() == null ? "" : excelRawData.getCol10());
+                        String col10 = excelRawData.getCol10();
+                        String batchRemark = col1;
+                        if (col10 != null && col10.length() > 0) {
+                            batchRemark += "." + col10;
+                        }
+                        tEnrollmentPlan.setBatchRemark(batchRemark);
                         // 次选科目
                         tEnrollmentPlan.setSubjectRequirement(excelRawData.getCol11());
                         // 计划数
@@ -343,11 +401,36 @@ public class ExcelServiceImpl implements ExcelService {
                         tEnrollmentPlan.setProvinceId(map.get("河北省"));
                         // 定向
                         // 科类
-                        tEnrollmentPlan.setSubjectType(excelRawData.getCol1());
+                        String col1 = excelRawData.getCol1();
+                        String subjectType = "";
+                        if (col1.contains("物理")) {
+                            subjectType = "物理";
+                        } else if (col1.contains("历史")) {
+                            subjectType = "历史";
+                        } else {
+                            subjectType = col1;
+                        }
+                        tEnrollmentPlan.setSubjectType(subjectType);
                         // 科类说明
-                        tEnrollmentPlan.setBatchRemark(excelRawData.getCol2());
+                        String col2 = excelRawData.getCol2();
                         // 批次
-                        tEnrollmentPlan.setBatch(excelRawData.getCol3());
+                        String col3 = excelRawData.getCol3();
+                        String batch = "";
+                        if ("本科批".equals(col3)) {
+                            batch = "本科批";
+                        } else if (col3.contains("本科提前批")) {
+                            batch = "本科提前批";
+                        } else if ("对口本科批".equals(col3)) {
+                            batch = "对口本科批";
+                        } else if ("对口专科批".equals(col3)) {
+                            batch = "对口专科批";
+                        } else if ("专科批".equals(col3)) {
+                            batch = "专科批";
+                        } else if ("专科提前批".equals(col3)) {
+                            batch = "专科提前批";
+                        }
+                        tEnrollmentPlan.setBatch(batch);
+                        tEnrollmentPlan.setBatchRemark(col3 + "." + col2);
                         // 院校代码
                         tEnrollmentPlan.setCollegeCode(excelRawData.getCol4());
                         // 院校名称
