@@ -507,9 +507,9 @@ public class ExcelServiceImpl implements ExcelService {
             List<TProvince> list = provinceService.list();
             Map<String, Integer> map = list.stream().collect(Collectors.toMap(TProvince::getProvinceName, TProvince::getId));
             String path = "D:/教材/毕业论文/毕业论文数据/当前传输";
-            int year = 2023;
-            String province = "河北省";
-            int headRowNum = 4;
+            int year = 2025;
+            String province = "内蒙古自治区";
+            int headRowNum = 1;
             ExcelTypeEnum type = ExcelTypeEnum.XLSX;
             File folder = new File(path);
             if (!folder.exists()) {
@@ -525,49 +525,25 @@ public class ExcelServiceImpl implements ExcelService {
             for (File file : allFiles) {
 //                String name = file.getName();
 //                String subjectType = name.contains("历史") ? "历史" : "物理";
-                int a = 0;
-                int b = 0;
                 // 一分一段
                 List<ExcelRawData> data = ExcelReadUtil.readForExcelAllSheetOrigin(file, headRowNum, type);
                 for (ExcelRawData excelRawData : data) {
-                    if (excelRawData.getCol0() ==  null || excelRawData.getCol2() ==  null) {
+                    if (excelRawData.getCol0() ==  null || excelRawData.getCol1() ==  null || excelRawData.getCol2() ==  null) {
                         continue;
                     }
                     TScoreRank scoreRank1 = new TScoreRank();
-                    TScoreRank scoreRank2 = new TScoreRank();
-                    int col0 = Integer.parseInt(excelRawData.getCol0());
-                    String col1 = excelRawData.getCol1();
-                    String col2 = excelRawData.getCol2();
-                    String col3 = excelRawData.getCol3();
-                    String col4 = excelRawData.getCol4();
-                    if (col1 != null && col2 != null) {
-                        scoreRank1.setYear(year);
-                        scoreRank1.setProvinceId(map.get(province));
-                        scoreRank1.setBatch("本科批");
-                        scoreRank1.setBatchRemark("本科");
-                        scoreRank1.setSubjectType("物理");
-                        scoreRank1.setScore(col0);
-                        scoreRank1.setScoreSegmentCount(Integer.valueOf(col1));
-                        scoreRank1.setCumulativeCount(Integer.valueOf(col2));
-                        scoreRanks.add(scoreRank1);
-                        a++;
-                    }
-                    if (col3 != null && col4 != null) {
-                        scoreRank2.setYear(year);
-                        scoreRank2.setProvinceId(map.get(province));
-                        scoreRank2.setBatch("本科批");
-                        scoreRank2.setBatchRemark("本科");
-                        scoreRank2.setSubjectType("历史");
-                        scoreRank2.setScore(col0);
-                        scoreRank2.setScoreSegmentCount(Integer.valueOf(col3));
-                        scoreRank2.setCumulativeCount(Integer.valueOf(col4));
-                        scoreRanks.add(scoreRank2);
-                        b++;
-                    }
+                    scoreRank1.setYear(year);
+                    scoreRank1.setProvinceId(map.get(province));
+                    String batch = excelRawData.getCol2();
+                    scoreRank1.setBatch(batch);
+                    scoreRank1.setBatchRemark("本科批".equals(batch) ? "本科" : "专科");
+                    String subjectType = excelRawData.getCol1();
+                    scoreRank1.setSubjectType("物理类".equals(subjectType) ? "物理" : "历史");
+                    scoreRank1.setScore(Integer.valueOf(excelRawData.getCol3()));
+                    scoreRank1.setScoreSegmentCount(Integer.valueOf(excelRawData.getCol4()));
+                    scoreRank1.setCumulativeCount(Integer.valueOf(excelRawData.getCol5()));
+                    scoreRanks.add(scoreRank1);
                 }
-                System.out.println("数据条数：" + scoreRanks.size());
-                System.out.println("物理数据条数：" + a);
-                System.out.println("历史数据条数：" + b);
             }
             try {
                 scoreRankService.saveBatch(scoreRanks);
