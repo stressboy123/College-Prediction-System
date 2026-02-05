@@ -508,7 +508,7 @@ public class ExcelServiceImpl implements ExcelService {
             Map<String, Integer> map = list.stream().collect(Collectors.toMap(TProvince::getProvinceName, TProvince::getId));
             String path = "D:/教材/毕业论文/毕业论文数据/当前传输";
             int year = 2025;
-            String province = "内蒙古自治区";
+            String province = "重庆市";
             int headRowNum = 1;
             ExcelTypeEnum type = ExcelTypeEnum.XLSX;
             File folder = new File(path);
@@ -523,8 +523,8 @@ public class ExcelServiceImpl implements ExcelService {
                 return Result.failWithOnlyMsg("当前文件夹无任何文件：" + path);
             }
             for (File file : allFiles) {
-//                String name = file.getName();
-//                String subjectType = name.contains("历史") ? "历史" : "物理";
+                String name = file.getName();
+                String subjectType = name.contains("历史") ? "历史" : "物理";
                 // 一分一段
                 List<ExcelRawData> data = ExcelReadUtil.readForExcelAllSheetOrigin(file, headRowNum, type);
                 for (ExcelRawData excelRawData : data) {
@@ -532,18 +532,32 @@ public class ExcelServiceImpl implements ExcelService {
                         continue;
                     }
                     TScoreRank scoreRank1 = new TScoreRank();
+//                    TScoreRank scoreRank2 = new TScoreRank();
+                    int col0 = Integer.parseInt(excelRawData.getCol0().trim());
+                    int col1 = Integer.parseInt(excelRawData.getCol1().trim());
+                    int col2 = Integer.parseInt(excelRawData.getCol2().trim());
+//                    int col3 = Integer.parseInt(excelRawData.getCol3());
+//                    int col4 = Integer.parseInt(excelRawData.getCol4());
                     scoreRank1.setYear(year);
                     scoreRank1.setProvinceId(map.get(province));
-                    String batch = excelRawData.getCol2();
-                    scoreRank1.setBatch(batch);
-                    scoreRank1.setBatchRemark("本科批".equals(batch) ? "本科" : "专科");
-                    String subjectType = excelRawData.getCol1();
-                    scoreRank1.setSubjectType("物理类".equals(subjectType) ? "物理" : "历史");
-                    scoreRank1.setScore(Integer.valueOf(excelRawData.getCol3()));
-                    scoreRank1.setScoreSegmentCount(Integer.valueOf(excelRawData.getCol4()));
-                    scoreRank1.setCumulativeCount(Integer.valueOf(excelRawData.getCol5()));
+                    scoreRank1.setBatch("本科批");
+                    scoreRank1.setBatchRemark("本科");
+                    scoreRank1.setSubjectType(subjectType);
+                    scoreRank1.setScore(col0);
+                    scoreRank1.setScoreSegmentCount(col1);
+                    scoreRank1.setCumulativeCount(col2);
+//                    scoreRank2.setYear(year);
+//                    scoreRank2.setProvinceId(map.get(province));
+//                    scoreRank2.setBatch("专科批");
+//                    scoreRank2.setBatchRemark("专科");
+//                    scoreRank2.setSubjectType(subjectType);
+//                    scoreRank2.setScore(col0);
+//                    scoreRank2.setScoreSegmentCount(col3);
+//                    scoreRank2.setCumulativeCount(col4);
                     scoreRanks.add(scoreRank1);
+//                    scoreRanks.add(scoreRank2);
                 }
+                System.out.println("数据条数：" + scoreRanks.size());
             }
             try {
                 scoreRankService.saveBatch(scoreRanks);

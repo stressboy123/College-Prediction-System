@@ -31,6 +31,4 @@ public class ExcelRawData {
     private String col19;
     private String col20;
 
-    // 预留sheetNo字段（监听器手动赋值）
-    private int sheetNo;
 }
