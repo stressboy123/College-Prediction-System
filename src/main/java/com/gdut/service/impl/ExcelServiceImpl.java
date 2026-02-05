@@ -507,9 +507,9 @@ public class ExcelServiceImpl implements ExcelService {
             List<TProvince> list = provinceService.list();
             Map<String, Integer> map = list.stream().collect(Collectors.toMap(TProvince::getProvinceName, TProvince::getId));
             String path = "D:/教材/毕业论文/毕业论文数据/当前传输";
-            int year = 2024;
-            String province = "贵州省";
-            int headRowNum = 1;
+            int year = 2023;
+            String province = "河北省";
+            int headRowNum = 4;
             ExcelTypeEnum type = ExcelTypeEnum.XLSX;
             File folder = new File(path);
             if (!folder.exists()) {
@@ -523,42 +523,51 @@ public class ExcelServiceImpl implements ExcelService {
                 return Result.failWithOnlyMsg("当前文件夹无任何文件：" + path);
             }
             for (File file : allFiles) {
-                String name = file.getName();
-                String subjectType = name.contains("历史") ? "历史" : "物理";
+//                String name = file.getName();
+//                String subjectType = name.contains("历史") ? "历史" : "物理";
+                int a = 0;
+                int b = 0;
                 // 一分一段
                 List<ExcelRawData> data = ExcelReadUtil.readForExcelAllSheetOrigin(file, headRowNum, type);
-                for (int i = 0; i < data.size() - 1; i += 2) {
-                    ExcelRawData scoreRow = data.get(i); // 分数行（第1、3、5...行）
-                    ExcelRawData dataRow = data.get(i + 1); // 数据行（第2、4、6...行）
-
-                    for (int j = 1; j <= 20; j++) {
-                        String scoreStr = getColValue(scoreRow, j);
-                        // 分数值空/非数字，直接跳过当前列
-                        if (scoreStr == null || !scoreStr.matches("\\d+")) {
-                            continue;
-                        }
-                        String dataStr = getColValue(dataRow, j);
-                        // 数据值空，跳过当前列
-                        if (dataStr == null || dataStr.trim().isEmpty()) {
-                            continue;
-                        }
-                        TScoreRank scoreRank = new TScoreRank();
-                        int score = Integer.parseInt(scoreStr.trim());
-                        String[] split = dataStr.split("\\n");
-                        int scoreSegmentCount = Integer.parseInt(split[0].trim());
-                        int cumulativeCount = Integer.parseInt(split[1].trim());
-                        scoreRank.setYear(year);
-                        scoreRank.setProvinceId(map.get(province));
-                        scoreRank.setBatch("本科批");
-                        scoreRank.setBatchRemark("本科");
-                        scoreRank.setSubjectType(subjectType);
-                        scoreRank.setScore(score);
-                        scoreRank.setScoreSegmentCount(scoreSegmentCount);
-                        scoreRank.setCumulativeCount(cumulativeCount);
-                        scoreRanks.add(scoreRank);
+                for (ExcelRawData excelRawData : data) {
+                    if (excelRawData.getCol0() ==  null || excelRawData.getCol2() ==  null) {
+                        continue;
+                    }
+                    TScoreRank scoreRank1 = new TScoreRank();
+                    TScoreRank scoreRank2 = new TScoreRank();
+                    int col0 = Integer.parseInt(excelRawData.getCol0());
+                    String col1 = excelRawData.getCol1();
+                    String col2 = excelRawData.getCol2();
+                    String col3 = excelRawData.getCol3();
+                    String col4 = excelRawData.getCol4();
+                    if (col1 != null && col2 != null) {
+                        scoreRank1.setYear(year);
+                        scoreRank1.setProvinceId(map.get(province));
+                        scoreRank1.setBatch("本科批");
+                        scoreRank1.setBatchRemark("本科");
+                        scoreRank1.setSubjectType("物理");
+                        scoreRank1.setScore(col0);
+                        scoreRank1.setScoreSegmentCount(Integer.valueOf(col1));
+                        scoreRank1.setCumulativeCount(Integer.valueOf(col2));
+                        scoreRanks.add(scoreRank1);
+                        a++;
+                    }
+                    if (col3 != null && col4 != null) {
+                        scoreRank2.setYear(year);
+                        scoreRank2.setProvinceId(map.get(province));
+                        scoreRank2.setBatch("本科批");
+                        scoreRank2.setBatchRemark("本科");
+                        scoreRank2.setSubjectType("历史");
+                        scoreRank2.setScore(col0);
+                        scoreRank2.setScoreSegmentCount(Integer.valueOf(col3));
+                        scoreRank2.setCumulativeCount(Integer.valueOf(col4));
+                        scoreRanks.add(scoreRank2);
+                        b++;
                     }
                 }
                 System.out.println("数据条数：" + scoreRanks.size());
+                System.out.println("物理数据条数：" + a);
+                System.out.println("历史数据条数：" + b);
             }
             try {
                 scoreRankService.saveBatch(scoreRanks);
