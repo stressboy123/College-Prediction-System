@@ -12,18 +12,21 @@ import com.gdut.entity.TCollege;
 import com.gdut.entity.TEnrollmentPlan;
 import com.gdut.entity.TMajor;
 import com.gdut.entity.TProvince;
+import com.gdut.entity.TScoreRank;
 import com.gdut.service.ExcelService;
 import com.gdut.service.ITAdmissionDataService;
 import com.gdut.service.ITCollegeService;
 import com.gdut.service.ITEnrollmentPlanService;
 import com.gdut.service.ITMajorService;
 import com.gdut.service.ITProvinceService;
+import com.gdut.service.ITScoreRankService;
 import com.gdut.utils.ExcelReadUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.io.File;
+import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -67,6 +70,9 @@ public class ExcelServiceImpl implements ExcelService {
     private ITEnrollmentPlanService enrollmentPlanService;
     @Resource
     private ITAdmissionDataService admissionDataService;
+
+    @Resource
+    private ITScoreRankService scoreRankService;
 
     @Transactional(rollbackFor = Exception.class)
     @Override
@@ -497,14 +503,99 @@ public class ExcelServiceImpl implements ExcelService {
     @Override
     public Result<String> addScoreRank() {
         try {
-            String chineseExcelPath = "D:/教材/毕业论文/毕业论文数据/院校数据/院校库.xlsx";
-            File excelFile = new File(chineseExcelPath);
-            // 一分一段
-            List<ExcelRawData> data = ExcelReadUtil.readForExcelAllSheetOrigin(excelFile, 2, ExcelTypeEnum.XLSX);
+            List<TScoreRank> scoreRanks = new ArrayList<>();
+            List<TProvince> list = provinceService.list();
+            Map<String, Integer> map = list.stream().collect(Collectors.toMap(TProvince::getProvinceName, TProvince::getId));
+            String path = "D:/教材/毕业论文/毕业论文数据/当前传输";
+            int year = 2024;
+            String province = "贵州省";
+            int headRowNum = 1;
+            ExcelTypeEnum type = ExcelTypeEnum.XLSX;
+            File folder = new File(path);
+            if (!folder.exists()) {
+                return Result.failWithOnlyMsg("文件夹不存在：" + path);
+            }
+            if (!folder.isDirectory()) {
+                return Result.failWithOnlyMsg("路径不是文件夹：" + path);
+            }
+            File[] allFiles = folder.listFiles();
+            if (allFiles == null || allFiles.length == 0) {
+                return Result.failWithOnlyMsg("当前文件夹无任何文件：" + path);
+            }
+            for (File file : allFiles) {
+                String name = file.getName();
+                String subjectType = name.contains("历史") ? "历史" : "物理";
+                // 一分一段
+                List<ExcelRawData> data = ExcelReadUtil.readForExcelAllSheetOrigin(file, headRowNum, type);
+                for (int i = 0; i < data.size() - 1; i += 2) {
+                    ExcelRawData scoreRow = data.get(i); // 分数行（第1、3、5...行）
+                    ExcelRawData dataRow = data.get(i + 1); // 数据行（第2、4、6...行）
+
+                    for (int j = 1; j <= 20; j++) {
+                        String scoreStr = getColValue(scoreRow, j);
+                        // 分数值空/非数字，直接跳过当前列
+                        if (scoreStr == null || !scoreStr.matches("\\d+")) {
+                            continue;
+                        }
+                        String dataStr = getColValue(dataRow, j);
+                        // 数据值空，跳过当前列
+                        if (dataStr == null || dataStr.trim().isEmpty()) {
+                            continue;
+                        }
+                        TScoreRank scoreRank = new TScoreRank();
+                        int score = Integer.parseInt(scoreStr.trim());
+                        String[] split = dataStr.split("\\n");
+                        int scoreSegmentCount = Integer.parseInt(split[0].trim());
+                        int cumulativeCount = Integer.parseInt(split[1].trim());
+                        scoreRank.setYear(year);
+                        scoreRank.setProvinceId(map.get(province));
+                        scoreRank.setBatch("本科批");
+                        scoreRank.setBatchRemark("本科");
+                        scoreRank.setSubjectType(subjectType);
+                        scoreRank.setScore(score);
+                        scoreRank.setScoreSegmentCount(scoreSegmentCount);
+                        scoreRank.setCumulativeCount(cumulativeCount);
+                        scoreRanks.add(scoreRank);
+                    }
+                }
+                System.out.println("数据条数：" + scoreRanks.size());
+            }
+            try {
+                scoreRankService.saveBatch(scoreRanks);
+            } catch (Exception e) {
+                e.printStackTrace();
+                return Result.failWithOnlyMsg("插入失败：" + e.getMessage());
+            }
+            System.out.println("数据条数：" + scoreRanks.size());
+            return Result.success();
         } catch (Exception e) {
-            System.out.println("执行失败：" + e.getMessage());
             e.printStackTrace();
+            return Result.failWithOnlyMsg("执行失败：" + e.getMessage());
         }
-        return null;
+    }
+
+    /**
+     * 动态获取ExcelRawData的colj字段值
+     * @param rawData Excel原始数据对象
+     * @param colIndex 列索引（0=col0、1=col1...20=col20）
+     * @return 对应列的字符串值，无字段/值为空则返回null
+     */
+    public static String getColValue(ExcelRawData rawData, int colIndex) {
+        if (rawData == null || colIndex < 0 || colIndex > 20) {
+            return null; // 索引越界（0-20外）直接返回null
+        }
+        try {
+            // 拼接字段名：col0、col1...col20
+            String fieldName = "col" + colIndex;
+            // 获取ExcelRawData类的指定字段
+            Field field = ExcelRawData.class.getDeclaredField(fieldName);
+            field.setAccessible(true); // 突破私有字段访问限制
+            // 获取字段值并强转为String（实体类中已定义为String，安全）
+            Object value = field.get(rawData);
+            return value == null ? null : value.toString().trim(); // 去空格，避免" 670 "这类情况
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            // 字段不存在/访问失败（理论上不会出现，因实体类已定义col0-col20）
+            return null;
+        }
     }
 }
