@@ -7,8 +7,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
-
 /**
  * @author liujunliang
  * @date 2026/1/31
@@ -68,7 +66,7 @@ public class TAdmissionData {
     /**
      * 投档最低分
      */
-    private BigDecimal lowestAdmissionScore;
+    private Integer lowestAdmissionScore;
     /**
      * 投档最低排位
      */

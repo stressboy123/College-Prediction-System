@@ -13,7 +13,7 @@ public interface ExcelService {
 
     Result<String> addEnrollmentPlan();
 
-    Result<String> getAdmissionData();
+    Result<String> addAdmissionData();
 
     Result<String> addScoreRank();
 }

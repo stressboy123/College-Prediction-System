@@ -447,53 +447,119 @@ public class ExcelServiceImpl implements ExcelService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public Result<String> getAdmissionData() {
+    public Result<String> addAdmissionData() {
         try {
             List<TAdmissionData> admissionData = new ArrayList<>();
             List<TProvince> list = provinceService.list();
             Map<String, Integer> map = list.stream().collect(Collectors.toMap(TProvince::getProvinceName, TProvince::getId));
             String path = "D:/教材/毕业论文/毕业论文数据/当前传输";
             String province = "广东省";
-            int year = 2023;
-            String batch = "本科批";
-            String batchRemark = "本科";
-            String subjectType = "物理";
+            int year = 0;
+            String subjectType = "";
+            String batch = "";
+            String batchRemark = "";
             int headRowNum = 2;
             ExcelTypeEnum type = ExcelTypeEnum.XLSX;
-            String folderPath = path + "/" + province + "/" + year + "/" + batch;
-            File folder = new File(folderPath);
+            File folder = new File(path);
             if (!folder.exists()) {
-                return Result.failWithOnlyMsg("文件夹不存在：" + folderPath);
+                return Result.failWithOnlyMsg("文件夹不存在：" + path);
             }
             if (!folder.isDirectory()) {
-                return Result.failWithOnlyMsg("路径不是文件夹：" + folderPath);
+                return Result.failWithOnlyMsg("路径不是文件夹：" + path);
             }
             File[] allFiles = folder.listFiles();
             if (allFiles == null || allFiles.length == 0) {
-                return Result.failWithOnlyMsg("当前文件夹无任何文件：" + folderPath);
+                return Result.failWithOnlyMsg("当前文件夹无任何文件：" + path);
             }
             for (File file : allFiles) {
+                String name = file.getName();
+                if (name.contains("2023")) {
+                    year = 2023;
+                } else if (name.contains("2024")) {
+                    year = 2024;
+                } else if (name.contains("2025")) {
+                    year = 2025;
+                } else {
+                    return Result.failWithOnlyMsg("当前文件不符合要求：" + name);
+                }
+                if (name.contains("历史")) {
+                    subjectType = "历史";
+                } else if (name.contains("物理")) {
+                    subjectType = "物理";
+                } else {
+                    return Result.failWithOnlyMsg("当前文件不符合要求：" + name);
+                }
+                if (name.contains("提前批本科")) {
+                    batch = "本科提前批";
+                    if (name.contains("非军检、面试院校")) {
+                        batchRemark = "提前批本科.非军检院校";
+                    } else if (name.contains("军检、面试院校")) {
+                        batchRemark = "提前批本科.军检院校(含公安)";
+                    } else if (name.contains("农村卫生专项")) {
+                        batchRemark = "提前批本科.卫生专项";
+                    } else if (name.contains("教师专项")) {
+                        batchRemark = "提前批本科.教师专项";
+                    } else if (name.contains("空军、海军招飞")) {
+                        batchRemark = "提前批本科.空军、海军招飞";
+                    } else if (name.contains("特殊类型招生")) {
+                        batch = "特殊类型招生";
+                        batchRemark = "特殊类型招生";
+                    } else {
+                        return Result.failWithOnlyMsg("当前文件不符合要求：" + name);
+                    }
+                } else if (name.contains("本科")) {
+                    batch = "本科批";
+                    batchRemark = "本科";
+                } else if (name.contains("提前批专科")) {
+                    batch = "专科提前批";
+                    if (name.contains("定向培养军士")) {
+                        batchRemark = "提前批专科.定向培养军士";
+                    } else if (name.contains("农村卫生专项")) {
+                        batchRemark = "提前批专科.卫生专项";
+                    } else {
+                        return Result.failWithOnlyMsg("当前文件不符合要求：" + name);
+                    }
+                } else if (name.contains("专科")) {
+                    batch = "专科批";
+                    batchRemark = "专科";
+                } else {
+                    return Result.failWithOnlyMsg("当前文件不符合要求：" + name);
+                }
                 List<ExcelAdmissionDataEntity> data = ExcelReadUtil.readForExcelAdmissionDataAllSheets(file, headRowNum, type);
                 for (ExcelAdmissionDataEntity excelAdmissionDataEntity : data) {
+                    if (excelAdmissionDataEntity.getCollegeCode() == null && excelAdmissionDataEntity.getCollegeName() == null && excelAdmissionDataEntity.getMajorGroup() == null) {
+                        continue;
+                    }
                     TAdmissionData admissionDataEntity = new TAdmissionData();
                     admissionDataEntity.setYear(year);
                     admissionDataEntity.setProvinceId(map.get(province));
                     admissionDataEntity.setBatch(batch);
                     admissionDataEntity.setBatchRemark(batchRemark);
                     admissionDataEntity.setSubjectType(subjectType);
+                    if (excelAdmissionDataEntity.getCollegeCode() == null || excelAdmissionDataEntity.getCollegeCode().trim().length() == 0) {
+                        return Result.failWithOnlyMsg("当前数据不符合要求：" + name + ":" + excelAdmissionDataEntity);
+                    }
                     admissionDataEntity.setCollegeCode(excelAdmissionDataEntity.getCollegeCode());
                     admissionDataEntity.setCollegeName(excelAdmissionDataEntity.getCollegeName());
+                    if (excelAdmissionDataEntity.getMajorGroup() == null || excelAdmissionDataEntity.getMajorGroup().trim().length() == 0) {
+                        return Result.failWithOnlyMsg("当前数据不符合要求：" +  name + ":" + excelAdmissionDataEntity);
+                    }
                     admissionDataEntity.setMajorGroupCode(excelAdmissionDataEntity.getMajorGroup());
                     admissionDataEntity.setMajorCode(excelAdmissionDataEntity.getMajorGroup());
                     admissionDataEntity.setMajorName(excelAdmissionDataEntity.getMajorName());
-                    admissionDataEntity.setLowestAdmissionScore(new BigDecimal(excelAdmissionDataEntity.getLowestScore()));
-                    admissionDataEntity.setLowestAdmissionRank(Integer.parseInt(excelAdmissionDataEntity.getLowestRank()));
+                    admissionDataEntity.setLowestAdmissionScore(Integer.parseInt(excelAdmissionDataEntity.getLowestScore() == null || "-".equals(excelAdmissionDataEntity.getLowestScore()) || "—".equals(excelAdmissionDataEntity.getLowestScore()) ? "0" : excelAdmissionDataEntity.getLowestScore()));
+                    admissionDataEntity.setLowestAdmissionRank(Integer.parseInt(excelAdmissionDataEntity.getLowestRank() == null || "-".equals(excelAdmissionDataEntity.getLowestRank()) || "—".equals(excelAdmissionDataEntity.getLowestRank()) ? "0" : excelAdmissionDataEntity.getLowestRank()));
                     admissionData.add(admissionDataEntity);
                 }
             }
+            try {
+                admissionDataService.saveBatch(admissionData);
+            } catch (Exception e) {
+                e.printStackTrace();
+                return Result.failWithOnlyMsg("插入失败：" + e.getMessage());
+            }
             System.out.println("数据条数：" + admissionData.size());
             return Result.success();
-//            return admissionDataService.saveBatch(admissionData) ? Result.success() : Result.failWithOnlyMsg("插入失败");
         } catch (Exception e) {
             e.printStackTrace();
             return Result.failWithOnlyMsg("执行失败：" + e.getMessage());

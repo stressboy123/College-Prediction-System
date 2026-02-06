@@ -33,9 +33,9 @@ public class ExcelController {
         return excelService.addEnrollmentPlan();
     }
 
-    @PostMapping("/getAdmissionData")
+    @PostMapping("/addAdmissionData")
     public Result<String> importAdmissionDataExcel() {
-        return excelService.getAdmissionData();
+        return excelService.addAdmissionData();
     }
 
     @PostMapping("/addScoreRank")
