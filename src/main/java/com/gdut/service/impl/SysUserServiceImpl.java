@@ -90,4 +90,9 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     public SysUser getUserByUsername(String username) {
         return sysUserMapper.selectByUsername(username);
     }
+
+    @Override
+    public Result<String> logout() {
+        return Result.successWithCustomMsg("登出成功");
+    }
 }

@@ -2,6 +2,7 @@ package com.gdut.config;
 
 import com.gdut.entity.SysUser;
 import com.gdut.filter.JwtAuthenticationFilter;
+import com.gdut.handler.CustomLogoutSuccessHandler;
 import com.gdut.handler.JwtAccessDeniedHandler;
 import com.gdut.handler.JwtAuthenticationEntryPoint;
 import com.gdut.service.SysUserService;
@@ -40,6 +41,8 @@ public class SecurityConfig {
     private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     @Resource
     private JwtAccessDeniedHandler jwtAccessDeniedHandler;
+    @Resource
+    private CustomLogoutSuccessHandler customLogoutSuccessHandler;
     @Resource
     private SysUserService sysUserService;
 
@@ -104,6 +107,13 @@ public class SecurityConfig {
                 .exceptionHandling()
                 .authenticationEntryPoint(jwtAuthenticationEntryPoint) // 未授权
                 .accessDeniedHandler(jwtAccessDeniedHandler) // 权限不足
+                .and()
+                // 7. 登出配置
+                .logout()
+                .logoutUrl("/auth/logout") // 登出接口URL
+                .logoutSuccessHandler(customLogoutSuccessHandler) // 绑定自定义登出处理器
+                .clearAuthentication(true) // 清除认证信息
+                .invalidateHttpSession(true) // 清空Session（无状态场景仅为兜底）
                 .and()
                 // 5. 添加JWT过滤器（在用户名密码认证过滤器之前）
                 .addFilterBefore(jwtAuthenticationFilterProvider.getObject(), UsernamePasswordAuthenticationFilter.class)

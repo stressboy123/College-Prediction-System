@@ -34,4 +34,10 @@ public class AuthController {
     public Result<String> register(@Valid @RequestBody RegisterDTO registerDTO) {
         return sysUserService.register(registerDTO);
     }
+
+    // 新增：登出接口（POST请求，需携带Token）
+    @PostMapping("/logout")
+    public Result<String> logout() {
+        return sysUserService.logout();
+    }
 }
