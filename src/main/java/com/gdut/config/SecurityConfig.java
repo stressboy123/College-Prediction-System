@@ -1,10 +1,13 @@
 package com.gdut.config;
 
+import com.gdut.entity.SysRole;
 import com.gdut.entity.SysUser;
 import com.gdut.filter.JwtAuthenticationFilter;
 import com.gdut.handler.CustomLogoutSuccessHandler;
 import com.gdut.handler.JwtAccessDeniedHandler;
 import com.gdut.handler.JwtAuthenticationEntryPoint;
+import com.gdut.mapper.SysRoleMapper;
+import com.gdut.mapper.SysUserRoleMapper;
 import com.gdut.service.SysUserService;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
@@ -16,6 +19,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -25,6 +29,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import javax.annotation.Resource;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author liujunliang
@@ -45,6 +51,10 @@ public class SecurityConfig {
     private CustomLogoutSuccessHandler customLogoutSuccessHandler;
     @Resource
     private SysUserService sysUserService;
+    @Resource
+    private SysUserRoleMapper sysUserRoleMapper;
+    @Resource
+    private SysRoleMapper sysRoleMapper;
 
     // 密码编码器（BCrypt加密）
     @Bean
@@ -62,14 +72,33 @@ public class SecurityConfig {
     @Bean
     public UserDetailsService userDetailsService() {
         return username -> {
+            // 1. 查询用户基本信息
             SysUser sysUser = sysUserService.getUserByUsername(username);
             if (sysUser == null) {
                 throw new UsernameNotFoundException("用户名不存在");
             }
-            // 构建UserDetails，包含用户名、密码、权限（这里简化，实际从角色表查询）
+
+            // 2. 查询角色ID列表（多角色核心）
+            List<Long> roleIds = sysUserRoleMapper.selectRoleIdsByUserId(sysUser.getId());
+            if (roleIds == null || roleIds.isEmpty()) {
+                throw new UsernameNotFoundException("用户未分配角色");
+            }
+
+            // 3. 批量查询角色信息
+            List<SysRole> roles = sysRoleMapper.selectBatchIds(roleIds);
+            if (roles.isEmpty()) {
+                throw new UsernameNotFoundException("角色不存在");
+            }
+
+            // 4. 构建多角色权限列表（适配Spring Security）
+            List<SimpleGrantedAuthority> authorities = roles.stream()
+                    .map(role -> new SimpleGrantedAuthority(role.getRoleName()))
+                    .collect(Collectors.toList());
+
+            // 5. 构建UserDetails（加载多角色权限）
             return User.withUsername(sysUser.getUsername())
                     .password(sysUser.getPassword())
-                    .authorities("ROLE_USER")
+                    .authorities(authorities) // 多角色权限列表
                     .build();
         };
     }

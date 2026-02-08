@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author liujunliang
@@ -76,5 +77,29 @@ public class JwtUtil {
     // 获取请求头Key
     public String getHeader() {
         return header;
+    }
+
+    /**
+     * 生成带角色的Token
+     * @param username 用户名
+     * @param roles 角色列表（单角色传Collections.singletonList("ROLE_USER")）
+     */
+    public String generateTokenWithRoles(String username, List<String> roles) {
+        SecretKey key = Keys.hmacShaKeyFor(secret.getBytes());
+        return Jwts.builder()
+                .setSubject(username)
+                .claim("roles", roles) // JWT载荷中写入角色
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + expire))
+                .signWith(key)
+                .compact();
+    }
+
+    /**
+     * 从Token中解析角色列表
+     */
+    public List<String> getRolesFromToken(String token) {
+        Claims claims = parseToken(token);
+        return (List<String>) claims.get("roles");
     }
 }

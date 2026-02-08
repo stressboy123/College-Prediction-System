@@ -1,6 +1,7 @@
 package com.gdut.controller;
 
 import com.gdut.entity.LoginDTO;
+import com.gdut.entity.LoginResponseVO;
 import com.gdut.entity.RegisterDTO;
 import com.gdut.entity.Result;
 import com.gdut.service.SysUserService;
@@ -25,7 +26,7 @@ public class AuthController {
 
     // 登录接口（无需认证）
     @PostMapping("/login")
-    public Result<String> login(@Valid @RequestBody LoginDTO loginDTO) {
+    public Result<LoginResponseVO> login(@Valid @RequestBody LoginDTO loginDTO) {
         return sysUserService.login(loginDTO);
     }
 

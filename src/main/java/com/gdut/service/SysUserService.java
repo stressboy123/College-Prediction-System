@@ -2,6 +2,7 @@ package com.gdut.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.gdut.entity.LoginDTO;
+import com.gdut.entity.LoginResponseVO;
 import com.gdut.entity.RegisterDTO;
 import com.gdut.entity.Result;
 import com.gdut.entity.SysUser;
@@ -12,7 +13,7 @@ import com.gdut.entity.SysUser;
  */
 public interface SysUserService extends IService<SysUser> {
     // 登录
-    Result<String> login(LoginDTO loginDTO);
+    Result<LoginResponseVO> login(LoginDTO loginDTO);
     // 注册
     Result<String> register(RegisterDTO registerDTO);
     // 根据用户名查询用户

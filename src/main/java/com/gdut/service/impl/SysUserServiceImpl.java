@@ -2,9 +2,11 @@ package com.gdut.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.gdut.entity.LoginDTO;
+import com.gdut.entity.LoginResponseVO;
 import com.gdut.entity.RegisterDTO;
 import com.gdut.entity.Result;
 import com.gdut.entity.ResultCode;
+import com.gdut.entity.SysRole;
 import com.gdut.entity.SysUser;
 import com.gdut.mapper.SysRoleMapper;
 import com.gdut.mapper.SysUserMapper;
@@ -14,13 +16,13 @@ import com.gdut.utils.JwtUtil;
 import com.gdut.utils.SpringContextHolder;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author liujunliang
@@ -42,20 +44,41 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     private static final String DEFAULT_ROLE = "ROLE_USER";
 
     @Override
-    public Result<String> login(LoginDTO loginDTO) {
-        // 通过SpringContextHolder获取所需的组件
+    public Result<LoginResponseVO> login(LoginDTO loginDTO) {
+        // 1. 通过SpringContextHolder获取所需的组件
         AuthenticationManager authenticationManager = SpringContextHolder.getBean(AuthenticationManager.class);
-        UserDetailsService userDetailsService = SpringContextHolder.getBean(UserDetailsService.class);
 
-        // 1. 验证用户名密码（Spring Security认证）
+        // 2. 验证用户名密码（Spring Security认证）
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginDTO.getUsername(), loginDTO.getPassword())
         );
-        // 2. 生成JWT令牌
-        UserDetails userDetails = userDetailsService.loadUserByUsername(loginDTO.getUsername());
-        String token = jwtUtil.generateToken(userDetails.getUsername());
-        // 3. 返回结果
-        return Result.successWithCustomMsgAndData("登录成功", token);
+
+        // 3. 查询用户+角色信息
+        // 3.1 通过用户名查SysUser（拿到ID和昵称）
+        SysUser sysUser = sysUserMapper.selectByUsername(loginDTO.getUsername());
+        // 3.2 通过用户ID查角色ID
+        List<Long> roleIds = sysUserRoleMapper.selectRoleIdsByUserId(sysUser.getId());
+        if (roleIds == null || roleIds.isEmpty()) {
+            return Result.fail(ResultCode.ROLE_NOT_FOUND); // 无角色直接返回失败
+        }
+        // 3.3 通过角色ID查角色名
+        List<SysRole> roles = sysRoleMapper.selectBatchIds(roleIds);
+        List<String> roleNames = roles.stream()
+                .map(SysRole::getRoleName)
+                .collect(Collectors.toList());
+
+        // 4. 生成带角色的JWT Token
+        String token = jwtUtil.generateTokenWithRoles(sysUser.getUsername(), roleNames);
+
+        // 5. 构建返回VO
+        LoginResponseVO responseVO = new LoginResponseVO();
+        responseVO.setToken(token);
+        responseVO.setUsername(sysUser.getUsername());
+        responseVO.setNickname(sysUser.getNickname());
+        responseVO.setRoles(roleNames);
+
+        // 6. 返回结果
+        return Result.successWithCustomMsgAndData("登录成功", responseVO);
     }
 
     @Override
