@@ -72,6 +72,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
         // 5. 构建返回VO
         LoginResponseVO responseVO = new LoginResponseVO();
+        responseVO.setId(sysUser.getId());
         responseVO.setToken(token);
         responseVO.setUsername(sysUser.getUsername());
         responseVO.setNickname(sysUser.getNickname());

@@ -1,13 +1,13 @@
 package com.gdut.filter;
 
-import com.gdut.utils.SpringContextHolder;
 import com.gdut.entity.SysUser;
 import com.gdut.service.SysUserService;
 import com.gdut.utils.JwtUtil;
+import com.gdut.utils.SpringContextHolder;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -29,6 +29,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Resource
     private JwtUtil jwtUtil;
+    @Resource
+    private UserDetailsService userDetailsService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -54,10 +56,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 return;
             }
             // 6. 构建UserDetails（Spring Security需要）
-            UserDetails userDetails = User.withUsername(sysUser.getUsername())
-                    .password(sysUser.getPassword())
-                    .authorities("ROLE_USER") // 实际应从角色表查询，这里简化
-                    .build();
+            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
             // 7. 验证Token有效性
             if (jwtUtil.validateToken(token, userDetails)) {
                 // 8. 设置认证信息到SecurityContext

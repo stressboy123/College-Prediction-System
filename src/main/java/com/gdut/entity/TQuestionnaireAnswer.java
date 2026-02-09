@@ -23,11 +23,11 @@ public class TQuestionnaireAnswer {
     @TableId(type = IdType.AUTO)
     private Integer id;
     /**
-     * 用户详细信息表主键（关联t_user_info.id）
+     * 用户ID（关联sys_user.id）
      */
-    private Integer userInfoId;
+    private Long userId;
     /**
-     * 问卷调查问题库主键（关联t_questionnaire.id）
+     * 问卷调查问题库主键
      */
     private Integer questionnaireId;
     /**

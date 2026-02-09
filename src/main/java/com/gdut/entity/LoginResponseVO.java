@@ -11,6 +11,8 @@ import java.util.List;
  */
 @Data
 public class LoginResponseVO {
+    /** 用户主键ID（新增） */
+    private Long id;
     /** JWT令牌 */
     private String token;
     /** 用户名 */
