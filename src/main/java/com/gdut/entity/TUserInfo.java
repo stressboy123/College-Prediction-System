@@ -25,7 +25,7 @@ public class TUserInfo {
     /**
      * 系统用户表主键
      */
-    private Integer sysUserId;
+    private Long sysUserId;
     /**
      * 真实姓名
      */
@@ -43,13 +43,9 @@ public class TUserInfo {
      */
     private Integer candidateYear;
     /**
-     * 考生科类
+     * 选科组合（关联t_subject_combination.id）
      */
-    private String candidateSubjectType;
-    /**
-     * 选科组合（关联t_subject_combination.subject_code）
-     */
-    private String subjectCombination;
+    private Integer subjectCombinationId;
     /**
      * 高考总分
      */
