@@ -33,5 +33,5 @@ public class TProvince {
     /**
      * 是否参与新高考（0=否，1=是）
      */
-    private Boolean isNewGaokao;
+    private Integer isNewGaokao;
 }
